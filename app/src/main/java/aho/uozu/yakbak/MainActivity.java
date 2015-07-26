@@ -106,16 +106,13 @@ public class MainActivity extends Activity {
 
     private void startRecording() {
         Log.d(TAG, "recording START");
-
         mRecorder.startRecording();
-
-        // TODO: set 'say' button background to red
+        mBtnSay.setBackgroundResource(R.drawable.round_button_red);
     }
 
     private void stopRecording() {
         Log.d(TAG, "recording STOP");
-
-        // TODO: set 'say' button background to grey
+        mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
         mRecorder.stop();
 
         // move recording from recorder to audio buffer
