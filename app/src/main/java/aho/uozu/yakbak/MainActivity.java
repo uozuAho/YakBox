@@ -6,7 +6,6 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
-import android.os.Environment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,9 +13,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 
 
@@ -25,9 +21,8 @@ public class MainActivity extends Activity {
     // UI elements
     private Button mBtnSay = null;
     private Button mBtnPlay = null;
-    private CheckBox mCbReverse = null;
+    private Button mBtnYalp = null;
     private SeekBar mSkbSpeed = null;
-    private ImageView mImgRecordIndicator = null;
 
     // sound recorder & player
     private AudioRecord mRecorder = null;
@@ -39,10 +34,6 @@ public class MainActivity extends Activity {
 
     // constants
     private static final String TAG = "YakBak";
-    private static final String FILENAME = Environment
-            .getExternalStorageDirectory().getAbsolutePath()
-            + "/yakbak-sound.3gp";
-
     private static final int MAX_RECORD_TIME_S = 2;
     private static final int SAMPLE_RATE_HZ_MAX =
             AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
@@ -57,11 +48,10 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         // UI controls
-        mBtnPlay = (Button) findViewById(R.id.button_play);
         mBtnSay = (Button) findViewById(R.id.button_say);
-        mCbReverse = (CheckBox) findViewById(R.id.cb_reverse);
+        mBtnPlay = (Button) findViewById(R.id.button_play);
+        mBtnYalp = (Button) findViewById(R.id.button_yalp);
         mSkbSpeed = (SeekBar) findViewById(R.id.skb_speed);
-        mImgRecordIndicator = (ImageView) findViewById(R.id.color_rec);
 
         // set speed slider to half-way
         mSkbSpeed.setProgress(mSkbSpeed.getMax() / 2);
@@ -95,13 +85,10 @@ public class MainActivity extends Activity {
             }
         });
 
-        // reverse checkbox listener - reverse existing sample if
-        // reverse is checked / unchecked
-        mCbReverse.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mBtnYalp.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                reverseBuffer();
-                mPlayer.write(mBuffer, 0, mSamplesInBuffer);
+            public void onClick(View v) {
+                playReverse();
             }
         });
     }
@@ -122,24 +109,18 @@ public class MainActivity extends Activity {
 
         mRecorder.startRecording();
 
-        // indicate recording with red rectangle
-        mImgRecordIndicator.setImageResource(R.drawable.red_rect);
+        // TODO: set 'say' button background to red
     }
 
     private void stopRecording() {
         Log.d(TAG, "recording STOP");
 
-        // indicate NOT recording with blue rectangle
-        mImgRecordIndicator.setImageResource(R.drawable.blue_rect);
+        // TODO: set 'say' button background to grey
         mRecorder.stop();
 
-        // move recording from recorder to player
+        // move recording from recorder to audio buffer
         flush();
         mSamplesInBuffer = mRecorder.read(mBuffer, 0, BUFFER_SIZE_SAMPLES);
-        if (mCbReverse.isChecked()) {
-            reverseBuffer();
-        }
-        mPlayer.write(mBuffer, 0, mSamplesInBuffer);
         Log.d(TAG, String.format("%d samples copied to buffer", mSamplesInBuffer));
     }
 
@@ -148,6 +129,20 @@ public class MainActivity extends Activity {
         int playback_rate_hz = (int) (speed * SAMPLE_RATE_HZ_MAX / 2);
         Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
         mPlayer.stop();
+        mPlayer.write(mBuffer, 0, mSamplesInBuffer);
+        mPlayer.reloadStaticData();
+        mPlayer.setPlaybackRate(playback_rate_hz);
+        mPlayer.play();
+    }
+
+    private void playReverse() {
+        double speed = getPlaybackSpeed();
+        int playback_rate_hz = (int) (speed * SAMPLE_RATE_HZ_MAX / 2);
+        Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
+        mPlayer.stop();
+        reverseBuffer();
+        mPlayer.write(mBuffer, 0, mSamplesInBuffer);
+        reverseBuffer();
         mPlayer.reloadStaticData();
         mPlayer.setPlaybackRate(playback_rate_hz);
         mPlayer.play();
@@ -166,6 +161,9 @@ public class MainActivity extends Activity {
         mPlayer.write(mBuffer, 0, BUFFER_SIZE_SAMPLES);
     }
 
+    /**
+     * In-place reverse the local audio buffer
+     */
     private void reverseBuffer() {
         short temp;
         for (int i = 0; i < mSamplesInBuffer / 2; i++) {
