@@ -105,6 +105,9 @@ public class MainActivity extends Activity {
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_SAMPLES, AudioTrack.MODE_STATIC);
+        flush();
+        // dummy write to player, to ensure it is in a playable state
+        mPlayer.write(mBuffer, 0, 10);
     }
 
     private void startRecording() {
@@ -124,7 +127,6 @@ public class MainActivity extends Activity {
         Log.d(TAG, String.format("%d samples copied to buffer", mSamplesInBuffer));
     }
 
-    // TODO:
     private void playForward() {
         int playback_rate_hz = getPlaybackSamplingRate();
         Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
@@ -194,6 +196,7 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         // release resources
+        // TODO: save current buffer to file
         if (mRecorder != null) {
             mRecorder.release();
             mRecorder = null;
