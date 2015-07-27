@@ -36,9 +36,10 @@ public class MainActivity extends Activity {
     private static final String TAG = "YakBak";
     private static final int MAX_RECORD_TIME_S = 2;
     private static final int SAMPLE_RATE_HZ_MAX =
-            AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
+            AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
     private static final int BUFFER_SIZE_SAMPLES =
             MAX_RECORD_TIME_S * SAMPLE_RATE_HZ_MAX;
+    private static final int RECORD_SAMPLE_RATE_HZ = SAMPLE_RATE_HZ_MAX / 4;
     private static final double PLAYBACK_SPEED_MIN = 0.3;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
 
@@ -81,7 +82,7 @@ public class MainActivity extends Activity {
         mBtnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startPlayback();
+                playForward();
             }
         });
 
@@ -96,10 +97,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_HZ_MAX / 2,
+        // TODO: check recorder and player state after initialisation.
+        // Not all devices may support the given sampling rate.
+        mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_SAMPLES);
-        mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, SAMPLE_RATE_HZ_MAX / 2,
+        mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_SAMPLES, AudioTrack.MODE_STATIC);
     }
@@ -121,9 +124,9 @@ public class MainActivity extends Activity {
         Log.d(TAG, String.format("%d samples copied to buffer", mSamplesInBuffer));
     }
 
-    private void startPlayback() {
-        double speed = getPlaybackSpeed();
-        int playback_rate_hz = (int) (speed * SAMPLE_RATE_HZ_MAX / 2);
+    // TODO:
+    private void playForward() {
+        int playback_rate_hz = getPlaybackSamplingRate();
         Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
         mPlayer.stop();
         mPlayer.write(mBuffer, 0, mSamplesInBuffer);
@@ -133,8 +136,7 @@ public class MainActivity extends Activity {
     }
 
     private void playReverse() {
-        double speed = getPlaybackSpeed();
-        int playback_rate_hz = (int) (speed * SAMPLE_RATE_HZ_MAX / 2);
+        int playback_rate_hz = getPlaybackSamplingRate();
         Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
         mPlayer.stop();
         reverseBuffer();
@@ -170,10 +172,22 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Get the playback speed based on the slider position.
+     * @return A double in the range [PLAYBACK_SPEED_MIN, PLAYBACK_SPEED_MAX]
+     */
     private double getPlaybackSpeed() {
         double range = PLAYBACK_SPEED_MAX - PLAYBACK_SPEED_MIN;
         double slider_frac = ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
         return slider_frac * range + PLAYBACK_SPEED_MIN;
+    }
+
+    /**
+     * Get the playback sampling rate based on the slider position.
+     * @return Sampling rate in Hertz
+     */
+    private int getPlaybackSamplingRate() {
+        return (int) (RECORD_SAMPLE_RATE_HZ * getPlaybackSpeed());
     }
 
     @Override
