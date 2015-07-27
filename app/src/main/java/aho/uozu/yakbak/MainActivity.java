@@ -179,6 +179,7 @@ public class MainActivity extends Activity {
      * @return A double in the range [PLAYBACK_SPEED_MIN, PLAYBACK_SPEED_MAX]
      */
     private double getPlaybackSpeed() {
+        // TODO: need more slider space between PLAYBACK_SPEED_MIN and 1.0
         double range = PLAYBACK_SPEED_MAX - PLAYBACK_SPEED_MIN;
         double slider_frac = ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
         return slider_frac * range + PLAYBACK_SPEED_MIN;
