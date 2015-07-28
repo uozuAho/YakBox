@@ -11,9 +11,10 @@
         android:layout_height="wrap_content"
         android:text="Say"
         android:background="@drawable/round_button_grey"
-        android:layout_marginTop="30dp"
+        android:layout_above="@+id/button_play"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="20dp" />
 
     <Button
         android:id="@+id/button_play"
@@ -21,8 +22,7 @@
         android:layout_height="wrap_content"
         android:text="Play"
         android:background="@drawable/round_button_grey"
-        android:layout_below="@+id/button_say"
-        android:layout_marginTop="30dp"
+        android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
@@ -33,7 +33,7 @@
         android:text="yalP"
         android:background="@drawable/round_button_grey"
         android:layout_below="@+id/button_play"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
