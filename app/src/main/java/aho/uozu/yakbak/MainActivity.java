@@ -7,6 +7,7 @@ import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +15,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 
 public class MainActivity extends Activity {
@@ -34,6 +42,8 @@ public class MainActivity extends Activity {
 
     // constants
     private static final String TAG = "YakBak";
+    private static final String BUFFER_FILEPATH = Environment
+            .getExternalStorageDirectory().getAbsolutePath() + "/yakbak-sound.bin";
     private static final int MAX_RECORD_TIME_S = 2;
     private static final int SAMPLE_RATE_HZ_MAX =
             AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
@@ -179,6 +189,8 @@ public class MainActivity extends Activity {
      * @return A double in the range [PLAYBACK_SPEED_MIN, PLAYBACK_SPEED_MAX]
      */
     private double getPlaybackSpeed() {
+        // Different scales for (min, 1.0) and (1.0, max).
+        // This keeps 1.0x speed at the middle of the slider.
         double range_lo = 1.0 - PLAYBACK_SPEED_MIN;
         double range_hi = PLAYBACK_SPEED_MAX - 1.0;
         double slider_pos = getSliderPos();
@@ -204,6 +216,30 @@ public class MainActivity extends Activity {
      */
     private int getPlaybackSamplingRate() {
         return (int) (RECORD_SAMPLE_RATE_HZ * getPlaybackSpeed());
+    }
+
+    private void saveBufferToFile() {
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(
+                    new FileOutputStream(BUFFER_FILEPATH));
+            oos.writeObject(mBuffer);
+            oos.flush();
+            oos.close();
+        }
+        catch (IOException e) {
+            Log.e(TAG, "error writing buffer to file", e);
+        }
+    }
+
+    private void loadSavedBuffer() {
+        try {
+            ObjectInputStream ois = new ObjectInputStream(
+                    new FileInputStream(BUFFER_FILEPATH));
+            mBuffer = (short[]) ois.readObject();
+        }
+        catch (Exception e) {
+            Log.e(TAG, "error loading buffer from file", e);
+        }
     }
 
     @Override
