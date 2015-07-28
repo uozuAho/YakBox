@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
     private static final int BUFFER_SIZE_SAMPLES =
             MAX_RECORD_TIME_S * SAMPLE_RATE_HZ_MAX;
     private static final int RECORD_SAMPLE_RATE_HZ = SAMPLE_RATE_HZ_MAX / 4;
-    private static final double PLAYBACK_SPEED_MIN = 0.3;
+    private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
 
     @Override
@@ -179,10 +179,23 @@ public class MainActivity extends Activity {
      * @return A double in the range [PLAYBACK_SPEED_MIN, PLAYBACK_SPEED_MAX]
      */
     private double getPlaybackSpeed() {
-        // TODO: need more slider space between PLAYBACK_SPEED_MIN and 1.0
-        double range = PLAYBACK_SPEED_MAX - PLAYBACK_SPEED_MIN;
-        double slider_frac = ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
-        return slider_frac * range + PLAYBACK_SPEED_MIN;
+        double range_lo = 1.0 - PLAYBACK_SPEED_MIN;
+        double range_hi = PLAYBACK_SPEED_MAX - 1.0;
+        double slider_pos = getSliderPos();
+        if (slider_pos < 0.5) {
+            return slider_pos * 2 * range_lo + PLAYBACK_SPEED_MIN;
+        }
+        else {
+            return (slider_pos - 0.5) * 2 * range_hi + 1.0;
+        }
+    }
+
+    /**
+     * Get position of the slider as a fraction.
+     * @return Slider position, within range [0, 1.0]
+     */
+    private double getSliderPos() {
+        return ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
     }
 
     /**
