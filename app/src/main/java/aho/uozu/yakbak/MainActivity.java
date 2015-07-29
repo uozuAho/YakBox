@@ -1,13 +1,13 @@
 package aho.uozu.yakbak;
 
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +16,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 public class MainActivity extends Activity {
 
@@ -29,15 +35,12 @@ public class MainActivity extends Activity {
     private AudioRecord mRecorder = null;
     private AudioTrack mPlayer = null;
 
-    // audio buffer - short for 16 bit PCM
-    private short[] mBuffer = null;
-    private int mSamplesInBuffer = 0;
-
-    // data to retain on config changes
-    private DataFragment mDataFragment;
+    private AudioBuffer mBuffer = null;
 
     // constants
     private static final String TAG = "YakBak";
+    private static final String BUFFER_FILEPATH = Environment
+            .getExternalStorageDirectory().getAbsolutePath() + "/yakbak-sound.bin";
     private static final int MAX_RECORD_TIME_S = 2;
     private static final int SAMPLE_RATE_HZ_MAX =
             AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
@@ -46,6 +49,60 @@ public class MainActivity extends Activity {
     private static final int RECORD_SAMPLE_RATE_HZ = SAMPLE_RATE_HZ_MAX / 4;
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
+
+    private class AudioBuffer implements Serializable {
+        // audio mBuffer - short for 16 bit PCM
+        public short[] mBuffer;
+        public int mNumSamples;
+
+        public AudioBuffer(int sample_capacity) {
+            mBuffer = new short[sample_capacity];
+            mNumSamples = 0;
+        }
+
+        public void reverse() {
+            short temp;
+            for (int i = 0; i < mNumSamples / 2; i++) {
+                temp = mBuffer[i];
+                mBuffer[i] = mBuffer[mNumSamples - i];
+                mBuffer[mNumSamples - i] = temp;
+            }
+        }
+
+        public void clear() {
+            for (int i = 0; i < BUFFER_SIZE_SAMPLES; i++) {
+                mBuffer[i] = 0;
+            }
+        }
+
+        public void saveToFile(String path) {
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
+                oos.writeInt(mNumSamples);
+                for (int i = 0; i < mNumSamples; i++) {
+                    oos.writeShort(mBuffer[i]);
+                }
+                oos.flush();
+                oos.close();
+            }
+            catch (IOException e) {
+                Log.e(TAG, "error saving buffer to file", e);
+            }
+        }
+
+        public void loadFromFile(String path) {
+            try {
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+                mNumSamples = ois.readInt();
+                for (int i = 0; i < mNumSamples; i++) {
+                    mBuffer[i] = ois.readShort();
+                }
+            }
+            catch (Exception e) {
+                Log.e(TAG, "error loading buffer from file", e);
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,22 +118,8 @@ public class MainActivity extends Activity {
         // set speed slider to half-way
         mSkbSpeed.setProgress(mSkbSpeed.getMax() / 2);
 
-        // load audio buffer from fragment, if available
-        FragmentManager fm = getFragmentManager();
-        mDataFragment = (DataFragment) fm.findFragmentByTag("data");
-        if (mDataFragment == null) {
-            // no fragment/audio buffer, create both
-            mDataFragment = new DataFragment();
-            fm.beginTransaction().add(mDataFragment, "data").commit();
-            mBuffer = new short[BUFFER_SIZE_SAMPLES];
-            Log.d(TAG, "New audio buffer created");
-        }
-        else {
-            mBuffer = mDataFragment.getAudioBuffer();
-            mSamplesInBuffer = mDataFragment.getSamplesInBuffer();
-            Log.d(TAG, String.format("Audio buffer recovered: %d samples",
-                    mSamplesInBuffer));
-        }
+        // audio mBuffer
+        mBuffer = new AudioBuffer(BUFFER_SIZE_SAMPLES);
 
         // record ('say') button listener
         mBtnSay.setOnTouchListener(new View.OnTouchListener() {
@@ -123,6 +166,7 @@ public class MainActivity extends Activity {
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_SAMPLES, AudioTrack.MODE_STATIC);
+        mBuffer.loadFromFile(BUFFER_FILEPATH);
     }
 
     private void startRecording() {
@@ -136,10 +180,10 @@ public class MainActivity extends Activity {
         mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
         mRecorder.stop();
 
-        // move recording from recorder to audio buffer
+        // move recording from recorder to audio mBuffer
         flush();
-        mSamplesInBuffer = mRecorder.read(mBuffer, 0, BUFFER_SIZE_SAMPLES);
-        Log.d(TAG, String.format("%d samples copied to buffer", mSamplesInBuffer));
+        mBuffer.mNumSamples = mRecorder.read(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
+        Log.d(TAG, String.format("%d samples copied to mBuffer", mBuffer.mNumSamples));
     }
 
     private void playForward() {
@@ -176,22 +220,8 @@ public class MainActivity extends Activity {
      * the end of the current one.
      */
     private void flush() {
-        for (int i = 0; i < BUFFER_SIZE_SAMPLES; i++) {
-            mBuffer[i] = 0;
-        }
-        mPlayer.write(mBuffer, 0, BUFFER_SIZE_SAMPLES);
-    }
-
-    /**
-     * In-place reverse the local audio buffer
-     */
-    private void reverseBuffer() {
-        short temp;
-        for (int i = 0; i < mSamplesInBuffer / 2; i++) {
-            temp = mBuffer[i];
-            mBuffer[i] = mBuffer[mSamplesInBuffer - i];
-            mBuffer[mSamplesInBuffer - i] = temp;
-        }
+        mBuffer.clear();
+        mPlayer.write(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
     }
 
     /**
@@ -199,6 +229,8 @@ public class MainActivity extends Activity {
      * @return A double in the range [PLAYBACK_SPEED_MIN, PLAYBACK_SPEED_MAX]
      */
     private double getPlaybackSpeed() {
+        // Different scales for (min, 1.0) and (1.0, max).
+        // This keeps 1.0x speed at the middle of the slider.
         double range_lo = 1.0 - PLAYBACK_SPEED_MIN;
         double range_hi = PLAYBACK_SPEED_MAX - 1.0;
         double slider_pos = getSliderPos();
@@ -229,6 +261,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        mBuffer.saveToFile(BUFFER_FILEPATH);
         // release resources
         if (mRecorder != null) {
             mRecorder.release();
@@ -238,13 +271,6 @@ public class MainActivity extends Activity {
             mPlayer.release();
             mPlayer = null;
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mDataFragment.setAudioBuffer(mBuffer);
-        mDataFragment.setSamplesInBuffer(mSamplesInBuffer);
     }
 
     @Override
