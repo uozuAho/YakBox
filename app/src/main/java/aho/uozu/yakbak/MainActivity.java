@@ -1,6 +1,7 @@
 package aho.uozu.yakbak;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -32,6 +33,9 @@ public class MainActivity extends Activity {
     private short[] mBuffer = null;
     private int mSamplesInBuffer = 0;
 
+    // data to retain on config changes
+    private DataFragment mDataFragment;
+
     // constants
     private static final String TAG = "YakBak";
     private static final int MAX_RECORD_TIME_S = 2;
@@ -57,8 +61,22 @@ public class MainActivity extends Activity {
         // set speed slider to half-way
         mSkbSpeed.setProgress(mSkbSpeed.getMax() / 2);
 
-        // audio buffer
-        mBuffer = new short[BUFFER_SIZE_SAMPLES];
+        // load audio buffer from fragment, if available
+        FragmentManager fm = getFragmentManager();
+        mDataFragment = (DataFragment) fm.findFragmentByTag("data");
+        if (mDataFragment == null) {
+            // no fragment/audio buffer, create both
+            mDataFragment = new DataFragment();
+            fm.beginTransaction().add(mDataFragment, "data").commit();
+            mBuffer = new short[BUFFER_SIZE_SAMPLES];
+            Log.d(TAG, "New audio buffer created");
+        }
+        else {
+            mBuffer = mDataFragment.getAudioBuffer();
+            mSamplesInBuffer = mDataFragment.getSamplesInBuffer();
+            Log.d(TAG, String.format("Audio buffer recovered: %d samples",
+                    mSamplesInBuffer));
+        }
 
         // record ('say') button listener
         mBtnSay.setOnTouchListener(new View.OnTouchListener() {
@@ -105,9 +123,6 @@ public class MainActivity extends Activity {
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_SAMPLES, AudioTrack.MODE_STATIC);
-        flush();
-        // dummy write to player, to ensure it is in a playable state
-        mPlayer.write(mBuffer, 0, 10);
     }
 
     private void startRecording() {
@@ -128,25 +143,30 @@ public class MainActivity extends Activity {
     }
 
     private void playForward() {
-        int playback_rate_hz = getPlaybackSamplingRate();
-        Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
-        mPlayer.stop();
-        mPlayer.write(mBuffer, 0, mSamplesInBuffer);
-        mPlayer.reloadStaticData();
-        mPlayer.setPlaybackRate(playback_rate_hz);
-        mPlayer.play();
+        play(false);
     }
 
     private void playReverse() {
+        play(true);
+    }
+
+    private void play(boolean reverse) {
         int playback_rate_hz = getPlaybackSamplingRate();
-        Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
-        mPlayer.stop();
-        reverseBuffer();
-        mPlayer.write(mBuffer, 0, mSamplesInBuffer);
-        reverseBuffer();
-        mPlayer.reloadStaticData();
-        mPlayer.setPlaybackRate(playback_rate_hz);
-        mPlayer.play();
+        if (mPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+            mPlayer.stop();
+        }
+        if (mSamplesInBuffer > 0) {
+            Log.d(TAG, String.format("Playing sample at %d hz", playback_rate_hz));
+            if (reverse) reverseBuffer();
+            mPlayer.write(mBuffer, 0, mSamplesInBuffer);
+            if (reverse) reverseBuffer();
+            mPlayer.reloadStaticData();
+            mPlayer.setPlaybackRate(playback_rate_hz);
+            mPlayer.play();
+        }
+        else {
+            Log.d(TAG, "Can't play - buffer empty");
+        }
     }
 
     /**
@@ -219,6 +239,13 @@ public class MainActivity extends Activity {
             mPlayer.release();
             mPlayer = null;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mDataFragment.setAudioBuffer(mBuffer);
+        mDataFragment.setSamplesInBuffer(mSamplesInBuffer);
     }
 
     @Override
