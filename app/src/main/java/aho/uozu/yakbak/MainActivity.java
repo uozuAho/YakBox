@@ -199,11 +199,11 @@ public class MainActivity extends Activity {
         if (mPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
             mPlayer.stop();
         }
-        if (mSamplesInBuffer > 0) {
+        if (mBuffer.mNumSamples > 0) {
             Log.d(TAG, String.format("Playing sample at %d hz", playback_rate_hz));
-            if (reverse) reverseBuffer();
-            mPlayer.write(mBuffer, 0, mSamplesInBuffer);
-            if (reverse) reverseBuffer();
+            if (reverse) mBuffer.reverse();
+            mPlayer.write(mBuffer.mBuffer, 0, mBuffer.mNumSamples);
+            if (reverse) mBuffer.reverse();
             mPlayer.reloadStaticData();
             mPlayer.setPlaybackRate(playback_rate_hz);
             mPlayer.play();
