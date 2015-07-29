@@ -140,17 +140,40 @@ public class MainActivity extends Activity {
         });
 
         // play button listener
-        mBtnPlay.setOnClickListener(new View.OnClickListener() {
+        mBtnPlay.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                playForward();
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        playForward();
+                        mBtnPlay.setBackgroundResource(R.drawable.round_button_grey_dark);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mBtnPlay.setBackgroundResource(R.drawable.round_button_grey);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
             }
         });
 
-        mBtnYalp.setOnClickListener(new View.OnClickListener() {
+        // 'yalp' button listener
+        mBtnYalp.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                playReverse();
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        playReverse();
+                        mBtnYalp.setBackgroundResource(R.drawable.round_button_grey_dark);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        mBtnYalp.setBackgroundResource(R.drawable.round_button_grey);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
             }
         });
     }
