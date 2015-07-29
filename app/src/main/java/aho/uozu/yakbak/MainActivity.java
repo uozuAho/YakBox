@@ -230,7 +230,6 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         // release resources
-        // TODO: save current buffer to file
         if (mRecorder != null) {
             mRecorder.release();
             mRecorder = null;
