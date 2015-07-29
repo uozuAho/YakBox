@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
 
-    private class AudioBuffer implements Serializable {
+    private class AudioBuffer {
         // audio mBuffer - short for 16 bit PCM
         public short[] mBuffer;
         public int mNumSamples;
