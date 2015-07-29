@@ -17,11 +17,11 @@ import android.widget.Button;
 import android.widget.SeekBar;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 
 public class MainActivity extends Activity {
@@ -36,9 +36,7 @@ public class MainActivity extends Activity {
     private AudioRecord mRecorder = null;
     private AudioTrack mPlayer = null;
 
-    // audio buffer - short for 16 bit PCM
-    private short[] mBuffer = null;
-    private int mSamplesInBuffer = 0;
+    private AudioBuffer mBuffer = null;
 
     // constants
     private static final String TAG = "YakBak";
@@ -52,6 +50,60 @@ public class MainActivity extends Activity {
     private static final int RECORD_SAMPLE_RATE_HZ = SAMPLE_RATE_HZ_MAX / 4;
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
+
+    private class AudioBuffer implements Serializable {
+        // audio mBuffer - short for 16 bit PCM
+        public short[] mBuffer;
+        public int mNumSamples;
+
+        public AudioBuffer(int sample_capacity) {
+            mBuffer = new short[sample_capacity];
+            mNumSamples = 0;
+        }
+
+        public void reverse() {
+            short temp;
+            for (int i = 0; i < mNumSamples / 2; i++) {
+                temp = mBuffer[i];
+                mBuffer[i] = mBuffer[mNumSamples - i];
+                mBuffer[mNumSamples - i] = temp;
+            }
+        }
+
+        public void clear() {
+            for (int i = 0; i < BUFFER_SIZE_SAMPLES; i++) {
+                mBuffer[i] = 0;
+            }
+        }
+
+        public void saveToFile(String path) {
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
+                oos.writeInt(mNumSamples);
+                for (int i = 0; i < mNumSamples; i++) {
+                    oos.writeShort(mBuffer[i]);
+                }
+                oos.flush();
+                oos.close();
+            }
+            catch (IOException e) {
+                Log.e(TAG, "error saving buffer to file", e);
+            }
+        }
+
+        public void loadFromFile(String path) {
+            try {
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+                mNumSamples = ois.readInt();
+                for (int i = 0; i < mNumSamples; i++) {
+                    mBuffer[i] = ois.readShort();
+                }
+            }
+            catch (Exception e) {
+                Log.e(TAG, "error loading buffer from file", e);
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +119,8 @@ public class MainActivity extends Activity {
         // set speed slider to half-way
         mSkbSpeed.setProgress(mSkbSpeed.getMax() / 2);
 
-        // audio buffer
-        mBuffer = new short[BUFFER_SIZE_SAMPLES];
+        // audio mBuffer
+        mBuffer = new AudioBuffer(BUFFER_SIZE_SAMPLES);
 
         // record ('say') button listener
         mBtnSay.setOnTouchListener(new View.OnTouchListener() {
@@ -115,9 +167,7 @@ public class MainActivity extends Activity {
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_SAMPLES, AudioTrack.MODE_STATIC);
-        flush();
-        // dummy write to player, to ensure it is in a playable state
-        mPlayer.write(mBuffer, 0, 10);
+        mBuffer.loadFromFile(BUFFER_FILEPATH);
     }
 
     private void startRecording() {
@@ -131,17 +181,17 @@ public class MainActivity extends Activity {
         mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
         mRecorder.stop();
 
-        // move recording from recorder to audio buffer
+        // move recording from recorder to audio mBuffer
         flush();
-        mSamplesInBuffer = mRecorder.read(mBuffer, 0, BUFFER_SIZE_SAMPLES);
-        Log.d(TAG, String.format("%d samples copied to buffer", mSamplesInBuffer));
+        mBuffer.mNumSamples = mRecorder.read(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
+        Log.d(TAG, String.format("%d samples copied to mBuffer", mBuffer.mNumSamples));
     }
 
     private void playForward() {
         int playback_rate_hz = getPlaybackSamplingRate();
         Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
         mPlayer.stop();
-        mPlayer.write(mBuffer, 0, mSamplesInBuffer);
+        mPlayer.write(mBuffer.mBuffer, 0, mBuffer.mNumSamples);
         mPlayer.reloadStaticData();
         mPlayer.setPlaybackRate(playback_rate_hz);
         mPlayer.play();
@@ -151,37 +201,23 @@ public class MainActivity extends Activity {
         int playback_rate_hz = getPlaybackSamplingRate();
         Log.d(TAG, String.format("playing sample at %d hz", playback_rate_hz));
         mPlayer.stop();
-        reverseBuffer();
-        mPlayer.write(mBuffer, 0, mSamplesInBuffer);
-        reverseBuffer();
+        mBuffer.reverse();
+        mPlayer.write(mBuffer.mBuffer, 0, mBuffer.mNumSamples);
+        mBuffer.reverse();
         mPlayer.reloadStaticData();
         mPlayer.setPlaybackRate(playback_rate_hz);
         mPlayer.play();
     }
 
     /**
-     * Write zeroes to the output buffer.
+     * Write zeroes to the output mBuffer.
      * Use this to delete the current sample - otherwise if a newly
      * recorded sample is shorter than the current one, you'll hear
      * the end of the current one.
      */
     private void flush() {
-        for (int i = 0; i < BUFFER_SIZE_SAMPLES; i++) {
-            mBuffer[i] = 0;
-        }
-        mPlayer.write(mBuffer, 0, BUFFER_SIZE_SAMPLES);
-    }
-
-    /**
-     * In-place reverse the local audio buffer
-     */
-    private void reverseBuffer() {
-        short temp;
-        for (int i = 0; i < mSamplesInBuffer / 2; i++) {
-            temp = mBuffer[i];
-            mBuffer[i] = mBuffer[mSamplesInBuffer - i];
-            mBuffer[mSamplesInBuffer - i] = temp;
-        }
+        mBuffer.clear();
+        mPlayer.write(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
     }
 
     /**
@@ -218,35 +254,11 @@ public class MainActivity extends Activity {
         return (int) (RECORD_SAMPLE_RATE_HZ * getPlaybackSpeed());
     }
 
-    private void saveBufferToFile() {
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(
-                    new FileOutputStream(BUFFER_FILEPATH));
-            oos.writeObject(mBuffer);
-            oos.flush();
-            oos.close();
-        }
-        catch (IOException e) {
-            Log.e(TAG, "error writing buffer to file", e);
-        }
-    }
-
-    private void loadSavedBuffer() {
-        try {
-            ObjectInputStream ois = new ObjectInputStream(
-                    new FileInputStream(BUFFER_FILEPATH));
-            mBuffer = (short[]) ois.readObject();
-        }
-        catch (Exception e) {
-            Log.e(TAG, "error loading buffer from file", e);
-        }
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
+        mBuffer.saveToFile(BUFFER_FILEPATH);
         // release resources
-        // TODO: save current buffer to file
         if (mRecorder != null) {
             mRecorder.release();
             mRecorder = null;
