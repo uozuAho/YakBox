@@ -50,60 +50,6 @@ public class MainActivity extends Activity {
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
 
-    private class AudioBuffer {
-        // audio mBuffer - short for 16 bit PCM
-        public short[] mBuffer;
-        public int mNumSamples;
-
-        public AudioBuffer(int sample_capacity) {
-            mBuffer = new short[sample_capacity];
-            mNumSamples = 0;
-        }
-
-        public void reverse() {
-            short temp;
-            for (int i = 0; i < mNumSamples / 2; i++) {
-                temp = mBuffer[i];
-                mBuffer[i] = mBuffer[mNumSamples - i];
-                mBuffer[mNumSamples - i] = temp;
-            }
-        }
-
-        public void clear() {
-            for (int i = 0; i < BUFFER_SIZE_SAMPLES; i++) {
-                mBuffer[i] = 0;
-            }
-        }
-
-        public void saveToFile(String path) {
-            try {
-                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
-                oos.writeInt(mNumSamples);
-                for (int i = 0; i < mNumSamples; i++) {
-                    oos.writeShort(mBuffer[i]);
-                }
-                oos.flush();
-                oos.close();
-            }
-            catch (IOException e) {
-                Log.e(TAG, "error saving buffer to file", e);
-            }
-        }
-
-        public void loadFromFile(String path) {
-            try {
-                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
-                mNumSamples = ois.readInt();
-                for (int i = 0; i < mNumSamples; i++) {
-                    mBuffer[i] = ois.readShort();
-                }
-            }
-            catch (Exception e) {
-                Log.e(TAG, "error loading buffer from file", e);
-            }
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -189,7 +135,12 @@ public class MainActivity extends Activity {
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_SAMPLES, AudioTrack.MODE_STATIC);
-        mBuffer.loadFromFile(BUFFER_FILEPATH);
+        try {
+            mBuffer.loadFromFile(BUFFER_FILEPATH);
+        }
+        catch (IOException e) {
+            Log.e(TAG, "Error loading saved buffer", e);
+        }
     }
 
     private void startRecording() {
@@ -284,7 +235,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        mBuffer.saveToFile(BUFFER_FILEPATH);
+        try {
+            mBuffer.saveToFile(BUFFER_FILEPATH);
+        }
+        catch (IOException e) {
+            Log.e(TAG, "Error saving buffer to file", e);
+        }
         // release resources
         if (mRecorder != null) {
             mRecorder.release();
