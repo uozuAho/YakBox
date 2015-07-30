@@ -1,4 +1,4 @@
-package aho.uozu.yakbak;
+package aho.uozu.yakbox;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

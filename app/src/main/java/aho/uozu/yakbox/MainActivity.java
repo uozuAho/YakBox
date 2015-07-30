@@ -1,4 +1,4 @@
-package aho.uozu.yakbak;
+package aho.uozu.yakbox;
 
 import android.app.Activity;
 import android.media.AudioFormat;
@@ -16,12 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
 public class MainActivity extends Activity {
 
@@ -38,9 +33,9 @@ public class MainActivity extends Activity {
     private AudioBuffer mBuffer = null;
 
     // constants
-    private static final String TAG = "YakBak";
+    private static final String TAG = "YakBox";
     private static final String BUFFER_FILEPATH = Environment
-            .getExternalStorageDirectory().getAbsolutePath() + "/yakbak-sound.bin";
+            .getExternalStorageDirectory().getAbsolutePath() + "/yakbox-sound.bin";
     private static final int MAX_RECORD_TIME_S = 2;
     private static final int SAMPLE_RATE_HZ_MAX =
             AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
