@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">YakBox</string>
     <string name="action_settings">Settings</string>
+    <string name="btn_say">Say</string>
+    <string name="btn_play">Play</string>
+    <string name="btn_yalp">yalP</string>
 </resources>
