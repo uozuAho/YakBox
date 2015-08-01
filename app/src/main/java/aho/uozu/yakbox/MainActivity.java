@@ -36,12 +36,13 @@ public class MainActivity extends Activity {
     private static final String TAG = "YakBox";
     private static final String BUFFER_FILEPATH = Environment
             .getExternalStorageDirectory().getAbsolutePath() + "/yakbox-sound.bin";
-    private static final int MAX_RECORD_TIME_S = 2;
+    private static final int MAX_RECORD_TIME_S = 5;
     private static final int SAMPLE_RATE_HZ_MAX =
             AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
-    private static final int BUFFER_SIZE_SAMPLES =
-            MAX_RECORD_TIME_S * SAMPLE_RATE_HZ_MAX;
     private static final int RECORD_SAMPLE_RATE_HZ = SAMPLE_RATE_HZ_MAX / 4;
+    private static final int BUFFER_SIZE_SAMPLES =
+            MAX_RECORD_TIME_S * RECORD_SAMPLE_RATE_HZ;
+    private static final int BUFFER_SIZE_BYTES = BUFFER_SIZE_SAMPLES * 2;
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
 
@@ -126,10 +127,10 @@ public class MainActivity extends Activity {
         // Not all devices may support the given sampling rate.
         mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                BUFFER_SIZE_SAMPLES);
+                BUFFER_SIZE_BYTES);
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                BUFFER_SIZE_SAMPLES, AudioTrack.MODE_STATIC);
+                BUFFER_SIZE_BYTES, AudioTrack.MODE_STATIC);
         try {
             mBuffer.loadFromFile(BUFFER_FILEPATH);
         }
@@ -142,6 +143,7 @@ public class MainActivity extends Activity {
         Log.d(TAG, "recording START");
         mRecorder.startRecording();
         mBtnSay.setBackgroundResource(R.drawable.round_button_red);
+        // TODO: ensure button goes grey if buffer runs out
     }
 
     private void stopRecording() {
@@ -152,7 +154,7 @@ public class MainActivity extends Activity {
         // move recording from recorder to audio mBuffer
         flush();
         mBuffer.mNumSamples = mRecorder.read(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
-        Log.d(TAG, String.format("%d samples copied to mBuffer", mBuffer.mNumSamples));
+        Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
     }
 
     private void playForward() {

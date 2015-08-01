@@ -43,7 +43,9 @@ public class AudioBuffer {
 
     public void loadFromFile(String path) throws IOException {
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
-        mNumSamples = ois.readInt();
+        int num_samples_in_file = ois.readInt();
+        // ensure not to overflow buffer, if saved sound is too big
+        mNumSamples = Math.min(num_samples_in_file, mBuffer.length);
         for (int i = 0; i < mNumSamples; i++) {
             mBuffer[i] = ois.readShort();
         }
