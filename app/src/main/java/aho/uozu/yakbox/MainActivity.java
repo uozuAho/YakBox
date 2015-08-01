@@ -123,14 +123,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        // TODO: check recorder and player state after initialisation.
-        // Not all devices may support the given sampling rate.
-        mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORD_SAMPLE_RATE_HZ,
-                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                BUFFER_SIZE_BYTES);
-        mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
-                AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                BUFFER_SIZE_BYTES, AudioTrack.MODE_STATIC);
+        initRecorder();
+        initPlayer();
         try {
             mBuffer.loadFromFile(BUFFER_FILEPATH);
         }
@@ -139,11 +133,38 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void initRecorder() {
+        // TODO: check recorder and player state after initialisation.
+        // Not all devices may support the given sampling rate.
+        mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORD_SAMPLE_RATE_HZ,
+                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
+                BUFFER_SIZE_BYTES);
+        // Change 'say' button colour to grey if buffer full
+        mRecorder.setRecordPositionUpdateListener(
+                new AudioRecord.OnRecordPositionUpdateListener() {
+                    @Override
+                    public void onMarkerReached(AudioRecord recorder) {
+                        mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+                    }
+
+                    @Override
+                    public void onPeriodicNotification(AudioRecord recorder) {
+
+                    }
+                });
+        mRecorder.setNotificationMarkerPosition(BUFFER_SIZE_SAMPLES);
+    }
+
+    private void initPlayer() {
+        mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
+                AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
+                BUFFER_SIZE_BYTES, AudioTrack.MODE_STATIC);
+    }
+
     private void startRecording() {
         Log.d(TAG, "recording START");
         mRecorder.startRecording();
         mBtnSay.setBackgroundResource(R.drawable.round_button_red);
-        // TODO: ensure button goes grey if buffer runs out
     }
 
     private void stopRecording() {
