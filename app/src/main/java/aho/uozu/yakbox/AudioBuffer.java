@@ -19,9 +19,10 @@ public class AudioBuffer {
     public void reverse() {
         short temp;
         for (int i = 0; i < mNumSamples / 2; i++) {
+            int i_opposite = mNumSamples - 1 - i;
             temp = mBuffer[i];
-            mBuffer[i] = mBuffer[mNumSamples - i];
-            mBuffer[mNumSamples - i] = temp;
+            mBuffer[i] = mBuffer[i_opposite];
+            mBuffer[i_opposite] = temp;
         }
     }
 
