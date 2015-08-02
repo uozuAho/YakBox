@@ -42,7 +42,10 @@ public class MainActivity extends Activity {
     private static final int MAX_RECORD_TIME_S = 5;
     private static final int SAMPLE_RATE_HZ_MAX =
             AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
+    // TODO: try a bunch of sample rates to increase chances of working
+    // Sample rate of 8000 works on 4.0 emulator, 22050 doesn't
     private static final int RECORD_SAMPLE_RATE_HZ = SAMPLE_RATE_HZ_MAX / 4;
+//    private static final int RECORD_SAMPLE_RATE_HZ = 8000;
     private static final int BUFFER_SIZE_SAMPLES =
             MAX_RECORD_TIME_S * RECORD_SAMPLE_RATE_HZ;
     private static final int BUFFER_SIZE_BYTES = BUFFER_SIZE_SAMPLES * 2;
@@ -133,6 +136,7 @@ public class MainActivity extends Activity {
             initPlayer();
         }
         catch (Exception e) {
+            Log.e(TAG, "init error", e);
             reportErrorAndClose("Error: couldn't initialise audio. Sorry!");
             // TODO: send error report
         }
@@ -154,7 +158,8 @@ public class MainActivity extends Activity {
         mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_BYTES);
-        if (mRecorder.getState() == AudioRecord.STATE_INITIALIZED) {
+        int state = mRecorder.getState();
+        if (state == AudioRecord.STATE_INITIALIZED) {
             // Change 'say' button colour to grey if buffer full
             mRecorder.setRecordPositionUpdateListener(
                     new AudioRecord.OnRecordPositionUpdateListener() {
@@ -171,7 +176,8 @@ public class MainActivity extends Activity {
             mRecorder.setNotificationMarkerPosition(BUFFER_SIZE_SAMPLES);
         }
         else {
-            throw new Exception("Failed to initialise AudioRecord");
+            throw new Exception(String.format(
+                    "Failed to initialise AudioRecord. State: %d", state));
         }
     }
 
@@ -179,8 +185,10 @@ public class MainActivity extends Activity {
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_BYTES, AudioTrack.MODE_STATIC);
-        if (mPlayer.getState() != AudioTrack.STATE_INITIALIZED) {
-            throw new Exception("Failed to initialise AudioRecord");
+        int state = mPlayer.getState();
+        if (state == AudioTrack.STATE_UNINITIALIZED) {
+            throw new Exception(String.format(
+                    "Failed to initialise AudioTrack. State: %d", state));
         }
     }
 
@@ -307,7 +315,16 @@ public class MainActivity extends Activity {
         catch (IOException e) {
             Log.e(TAG, "Error saving buffer to file", e);
         }
-        // release resources
+        releaseAudioResources();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseAudioResources();
+    }
+
+    private void releaseAudioResources() {
         if (mRecorder != null) {
             mRecorder.release();
             mRecorder = null;
