@@ -1,6 +1,8 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -16,6 +18,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class MainActivity extends Activity {
@@ -123,42 +126,87 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        initRecorder();
-        initPlayer();
+
+        // init audio recorder and player
+        try {
+            initRecorder();
+            initPlayer();
+        }
+        catch (Exception e) {
+            reportErrorAndClose("Error: couldn't initialise audio. Sorry!");
+            // TODO: send error report
+        }
+
+        // init audio buffer
         try {
             mBuffer.loadFromFile(BUFFER_FILEPATH);
+        }
+        catch (FileNotFoundException e) {
+            // do nothing - it's OK if there's no existing sound file
         }
         catch (IOException e) {
             Log.e(TAG, "Error loading saved buffer", e);
         }
     }
 
-    private void initRecorder() {
-        // TODO: check recorder and player state after initialisation.
+    private void initRecorder() throws Exception {
         // Not all devices may support the given sampling rate.
         mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_BYTES);
-        // Change 'say' button colour to grey if buffer full
-        mRecorder.setRecordPositionUpdateListener(
-                new AudioRecord.OnRecordPositionUpdateListener() {
-                    @Override
-                    public void onMarkerReached(AudioRecord recorder) {
-                        mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
-                    }
+        if (mRecorder.getState() == AudioRecord.STATE_INITIALIZED) {
+            // Change 'say' button colour to grey if buffer full
+            mRecorder.setRecordPositionUpdateListener(
+                    new AudioRecord.OnRecordPositionUpdateListener() {
+                        @Override
+                        public void onMarkerReached(AudioRecord recorder) {
+                            mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+                        }
 
-                    @Override
-                    public void onPeriodicNotification(AudioRecord recorder) {
+                        @Override
+                        public void onPeriodicNotification(AudioRecord recorder) {
 
-                    }
-                });
-        mRecorder.setNotificationMarkerPosition(BUFFER_SIZE_SAMPLES);
+                        }
+                    });
+            mRecorder.setNotificationMarkerPosition(BUFFER_SIZE_SAMPLES);
+        }
+        else {
+            throw new Exception("Failed to initialise AudioRecord");
+        }
     }
 
-    private void initPlayer() {
+    private void initPlayer() throws Exception {
         mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 BUFFER_SIZE_BYTES, AudioTrack.MODE_STATIC);
+        if (mPlayer.getState() != AudioTrack.STATE_INITIALIZED) {
+            throw new Exception("Failed to initialise AudioRecord");
+        }
+    }
+
+    /**
+     * Report error to the user (& devs?) & close the app.
+     * @param message
+     *      Message displayed to the user.
+     * @param btnText
+     *      Text on the button that closes the report (and app).
+     */
+    private void reportErrorAndClose(String message, String btnText) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder
+                .setMessage(message)
+                .setCancelable(false)
+                .setNeutralButton(btnText, new DialogInterface.OnClickListener() {
+                    public void onClick (DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+        AlertDialog error = builder.create();
+        error.show();
+    }
+
+    private void reportErrorAndClose(String message) {
+        reportErrorAndClose(message, "Close app");
     }
 
     private void startRecording() {
