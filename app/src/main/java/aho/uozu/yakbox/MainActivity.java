@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
 
     // sound recorder & player
     private AudioRecord mRecorder = null;
-    private AudioTrack mPlayer = null;
+    private AudioPlayer mPlayer = null;
 
     private AudioBuffer mBuffer = null;
 
@@ -133,7 +133,11 @@ public class MainActivity extends Activity {
         // init audio recorder and player
         try {
             initRecorder();
-            initPlayer();
+            mPlayer = new AudioPlayer.Builder()
+                    .buffersize(BUFFER_SIZE_SAMPLES)
+                    .sample_rate(RECORD_SAMPLE_RATE_HZ)
+                    .filepath(BUFFER_FILEPATH)
+                    .build();
         }
         catch (Exception e) {
             Log.e(TAG, "init error", e);
@@ -181,17 +185,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void initPlayer() throws Exception {
-        mPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, RECORD_SAMPLE_RATE_HZ,
-                AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                BUFFER_SIZE_BYTES, AudioTrack.MODE_STATIC);
-        int state = mPlayer.getState();
-        if (state == AudioTrack.STATE_UNINITIALIZED) {
-            throw new Exception(String.format(
-                    "Failed to initialise AudioTrack. State: %d", state));
-        }
-    }
-
     /**
      * Report error to the user (& devs?) & close the app.
      * @param message
@@ -229,47 +222,18 @@ public class MainActivity extends Activity {
         mRecorder.stop();
 
         // move recording from recorder to audio mBuffer
-        flush();
         mBuffer.mNumSamples = mRecorder.read(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
         Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
     }
 
     private void playForward() {
-        play(false);
+        mPlayer.play(mBuffer.mBuffer, mBuffer.mNumSamples, getPlaybackSpeed());
     }
 
     private void playReverse() {
-        play(true);
-    }
-
-    private void play(boolean reverse) {
-        int playback_rate_hz = getPlaybackSamplingRate();
-        if (mPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
-            mPlayer.stop();
-        }
-        if (mBuffer.mNumSamples > 0) {
-            Log.d(TAG, String.format("Playing sample at %d hz", playback_rate_hz));
-            if (reverse) mBuffer.reverse();
-            mPlayer.write(mBuffer.mBuffer, 0, mBuffer.mNumSamples);
-            if (reverse) mBuffer.reverse();
-            mPlayer.reloadStaticData();
-            mPlayer.setPlaybackRate(playback_rate_hz);
-            mPlayer.play();
-        }
-        else {
-            Log.d(TAG, "Can't play - buffer empty");
-        }
-    }
-
-    /**
-     * Write zeroes to the output buffer.
-     * Use this to delete the current sample - otherwise if a newly
-     * recorded sample is shorter than the current one, you'll hear
-     * the end of the current one.
-     */
-    private void flush() {
-        mBuffer.clear();
-        mPlayer.write(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
+        mBuffer.reverse();
+        mPlayer.play(mBuffer.mBuffer, mBuffer.mNumSamples, getPlaybackSpeed());
+        mBuffer.reverse();
     }
 
     /**
@@ -296,14 +260,6 @@ public class MainActivity extends Activity {
      */
     private double getSliderPos() {
         return ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
-    }
-
-    /**
-     * Get the playback sampling rate based on the slider position.
-     * @return Sampling rate in Hertz
-     */
-    private int getPlaybackSamplingRate() {
-        return (int) (RECORD_SAMPLE_RATE_HZ * getPlaybackSpeed());
     }
 
     @Override
