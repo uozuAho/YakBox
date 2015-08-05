@@ -37,8 +37,10 @@ public class AudioRecorder {
         mAudioRecord.stop();
     }
 
-    public int read(short[] buffer) {
-        return mAudioRecord.read(buffer, 0, mBufferSizeSamples);
+    public int read(AudioBuffer buf) {
+        if (BuildConfig.DEBUG && buf.mBuffer.length != mBufferSizeSamples)
+            throw new AssertionError();
+        return mAudioRecord.read(buf.mBuffer, 0, mBufferSizeSamples);
     }
 
     public void release() {
@@ -81,10 +83,6 @@ public class AudioRecorder {
 
     public int getBufferSizeSamples() {
         return mBufferSizeSamples;
-    }
-
-    public int getBufferSizeBytes() {
-        return mBufferSizeBytes;
     }
 
     private AudioRecord initAudioRecord() throws Exception {

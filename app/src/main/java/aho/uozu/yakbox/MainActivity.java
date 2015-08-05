@@ -123,6 +123,14 @@ public class MainActivity extends Activity {
             mPlayer = new AudioPlayer(mRecorder.getSampleRate(),
                     mRecorder.getBufferSizeSamples());
             mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
+
+            // set 'say' button back to grey if record buffer is full
+            mRecorder.setOnBufferFullListener(new AudioRecorder.OnBufferFullListener() {
+                @Override
+                public void onBufferFull() {
+                    mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+                }
+            });
         }
         catch (Exception e) {
             Log.e(TAG, "init error", e);
@@ -179,17 +187,17 @@ public class MainActivity extends Activity {
         mRecorder.stopRecording();
 
         // move recording from recorder to audio mBuffer
-        mBuffer.mNumSamples = mRecorder.read(mBuffer.mBuffer);
+        mBuffer.mNumSamples = mRecorder.read(mBuffer);
         Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
     }
 
     private void playForward() {
-        mPlayer.play(mBuffer.mBuffer, mBuffer.mNumSamples, getPlaybackSpeed());
+        mPlayer.play(mBuffer, getPlaybackSpeed());
     }
 
     private void playReverse() {
         mBuffer.reverse();
-        mPlayer.play(mBuffer.mBuffer, mBuffer.mNumSamples, getPlaybackSpeed());
+        mPlayer.play(mBuffer, getPlaybackSpeed());
         mBuffer.reverse();
     }
 
