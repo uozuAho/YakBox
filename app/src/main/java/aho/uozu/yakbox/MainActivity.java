@@ -29,26 +29,16 @@ public class MainActivity extends Activity {
     private Button mBtnYalp = null;
     private SeekBar mSkbSpeed = null;
 
-    // sound recorder & player
-    private AudioRecord mRecorder = null;
-    private AudioPlayer mPlayer = null;
-
+    // sound recorder, buffer & player
+    private AudioRecorder mRecorder = null;
     private AudioBuffer mBuffer = null;
+    private AudioPlayer mPlayer = null;
 
     // constants
     private static final String TAG = "YakBox";
     private static final String BUFFER_FILEPATH = Environment
             .getExternalStorageDirectory().getAbsolutePath() + "/yakbox-sound.bin";
     private static final int MAX_RECORD_TIME_S = 5;
-    private static final int SAMPLE_RATE_HZ_MAX =
-            AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC) * 2;
-    // TODO: try a bunch of sample rates to increase chances of working
-    // Sample rate of 8000 works on 4.0 emulator, 22050 doesn't
-    private static final int RECORD_SAMPLE_RATE_HZ = SAMPLE_RATE_HZ_MAX / 4;
-//    private static final int RECORD_SAMPLE_RATE_HZ = 8000;
-    private static final int BUFFER_SIZE_SAMPLES =
-            MAX_RECORD_TIME_S * RECORD_SAMPLE_RATE_HZ;
-    private static final int BUFFER_SIZE_BYTES = BUFFER_SIZE_SAMPLES * 2;
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
 
@@ -65,9 +55,6 @@ public class MainActivity extends Activity {
 
         // set speed slider to half-way
         mSkbSpeed.setProgress(mSkbSpeed.getMax() / 2);
-
-        // audio mBuffer
-        mBuffer = new AudioBuffer(BUFFER_SIZE_SAMPLES);
 
         // record ('say') button listener
         mBtnSay.setOnTouchListener(new View.OnTouchListener() {
@@ -132,12 +119,13 @@ public class MainActivity extends Activity {
 
         // init audio recorder and player
         try {
-            initRecorder();
+            mRecorder = new AudioRecorder(MAX_RECORD_TIME_S);
             mPlayer = new AudioPlayer.Builder()
-                    .buffersize(BUFFER_SIZE_SAMPLES)
-                    .sample_rate(RECORD_SAMPLE_RATE_HZ)
+                    .buffersize(mRecorder.getBufferSizeSamples())
+                    .sample_rate(mRecorder.getSampleRate())
                     .filepath(BUFFER_FILEPATH)
                     .build();
+            mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
         }
         catch (Exception e) {
             Log.e(TAG, "init error", e);
@@ -154,34 +142,6 @@ public class MainActivity extends Activity {
         }
         catch (IOException e) {
             Log.e(TAG, "Error loading saved buffer", e);
-        }
-    }
-
-    private void initRecorder() throws Exception {
-        // Not all devices may support the given sampling rate.
-        mRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORD_SAMPLE_RATE_HZ,
-                AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                BUFFER_SIZE_BYTES);
-        int state = mRecorder.getState();
-        if (state == AudioRecord.STATE_INITIALIZED) {
-            // Change 'say' button colour to grey if buffer full
-            mRecorder.setRecordPositionUpdateListener(
-                    new AudioRecord.OnRecordPositionUpdateListener() {
-                        @Override
-                        public void onMarkerReached(AudioRecord recorder) {
-                            mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
-                        }
-
-                        @Override
-                        public void onPeriodicNotification(AudioRecord recorder) {
-
-                        }
-                    });
-            mRecorder.setNotificationMarkerPosition(BUFFER_SIZE_SAMPLES);
-        }
-        else {
-            throw new Exception(String.format(
-                    "Failed to initialise AudioRecord. State: %d", state));
         }
     }
 
@@ -219,10 +179,10 @@ public class MainActivity extends Activity {
     private void stopRecording() {
         Log.d(TAG, "recording STOP");
         mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
-        mRecorder.stop();
+        mRecorder.stopRecording();
 
         // move recording from recorder to audio mBuffer
-        mBuffer.mNumSamples = mRecorder.read(mBuffer.mBuffer, 0, BUFFER_SIZE_SAMPLES);
+        mBuffer.mNumSamples = mRecorder.read(mBuffer.mBuffer);
         Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
     }
 
