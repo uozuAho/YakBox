@@ -120,11 +120,8 @@ public class MainActivity extends Activity {
         // init audio recorder and player
         try {
             mRecorder = new AudioRecorder(MAX_RECORD_TIME_S);
-            mPlayer = new AudioPlayer.Builder()
-                    .buffersize(mRecorder.getBufferSizeSamples())
-                    .sample_rate(mRecorder.getSampleRate())
-                    .filepath(BUFFER_FILEPATH)
-                    .build();
+            mPlayer = new AudioPlayer(mRecorder.getSampleRate(),
+                    mRecorder.getBufferSizeSamples());
             mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
         }
         catch (Exception e) {

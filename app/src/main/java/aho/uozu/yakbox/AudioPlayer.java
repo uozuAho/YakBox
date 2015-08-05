@@ -10,46 +10,25 @@ public class AudioPlayer {
     private int mBufferSizeSamples;
     private int mBufferSizeBytes;
     private int mLastClipLengthSamples;
-    private String mFilepath;
     private AudioTrack mAudioTrack;
 
     private static final String TAG = "YakBox-AudioPlayer";
     private static final double PLAYBACK_RATE_MIN = 0.333;
     private static final double PLAYBACK_RATE_MAX = 3.0;
 
-    public static class Builder {
-        private int mSampleRate;
-        private int mBufferSizeSamples;
-        private String mFilepath;
-
-        public Builder sample_rate(int rate) {
-            mSampleRate = rate;
-            return this;
-        }
-
-        public Builder filepath(String path) {
-            mFilepath = path;
-            return this;
-        }
-
-        /**
-         * Set the audio player buffer size (in number of samples)
-         * @param num_samples
-         *      Buffer size in samples.
-         */
-        public Builder buffersize(int num_samples) {
-            mBufferSizeSamples = num_samples;
-            return this;
-        }
-
-        /**
-         * Build the AudioPlayer.
-         * @throws Exception
-         *      If initialisation fails.
-         */
-        public AudioPlayer build() throws Exception {
-            return new AudioPlayer(this);
-        }
+    /**
+     * Initialise a new AudioPlayer
+     * @param sample_rate Audio sample rate in Hertz
+     * @param buffer_size Audio buffer size in samples
+     * @throws Exception If audio system initialisation fails.
+     */
+    public AudioPlayer(int sample_rate, int buffer_size) throws Exception {
+        this.mSampleRate = sample_rate;
+        this.mBufferSizeSamples = buffer_size;
+        // assume 16 bit samples
+        this.mBufferSizeBytes = buffer_size * 2;
+        this.mLastClipLengthSamples = 0;
+        this.mAudioTrack = initAudioTrack();
     }
 
     /**
@@ -104,19 +83,6 @@ public class AudioPlayer {
 
     private int getPlaybackSamplingRate(double rate) {
         return (int) (mSampleRate * rate);
-    }
-
-    /**
-     * Private constructor
-     */
-    private AudioPlayer(Builder b) throws Exception {
-        this.mSampleRate = b.mSampleRate;
-        this.mBufferSizeSamples = b.mBufferSizeSamples;
-        // assume 16 bit samples
-        this.mBufferSizeBytes = b.mBufferSizeSamples * 2;
-        this.mLastClipLengthSamples = 0;
-        this.mFilepath = b.mFilepath;
-        this.mAudioTrack = initAudioTrack();
     }
 
     private AudioTrack initAudioTrack() throws Exception {
