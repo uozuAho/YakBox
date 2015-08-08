@@ -134,6 +134,7 @@ public class MainActivity extends Activity {
         }
         catch (Exception e) {
             Log.e(TAG, "init error", e);
+            releaseAudioResources();
             reportErrorAndClose("Error: couldn't initialise audio. Sorry!");
             // TODO: send error report
         }
