@@ -139,14 +139,14 @@ public class MainActivity extends Activity {
         }
 
         // init audio buffer
-        try {
-            mBuffer.loadFromFile(BUFFER_FILEPATH);
-        }
-        catch (FileNotFoundException e) {
-            // do nothing - it's OK if there's no existing sound file
-        }
-        catch (IOException e) {
-            Log.e(TAG, "Error loading saved buffer", e);
+        if (mBuffer != null) {
+            try {
+                mBuffer.loadFromFile(BUFFER_FILEPATH);
+            } catch (FileNotFoundException e) {
+                // do nothing - it's OK if there's no existing sound file
+            } catch (IOException e) {
+                Log.e(TAG, "Error loading saved buffer", e);
+            }
         }
     }
 
