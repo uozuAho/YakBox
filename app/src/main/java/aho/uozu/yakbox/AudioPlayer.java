@@ -36,28 +36,29 @@ public class AudioPlayer {
      * @param buf Audio buffer
      * @param rate Playback rate
      */
-    public void play(AudioBuffer buf, double rate) {
-        if (buf == null)                    throw new NullPointerException();
+    public void play(AudioBuffer buf, double rate) throws IllegalArgumentException {
+        if (buf == null) throw new NullPointerException();
         if (rate < PLAYBACK_RATE_MIN || rate > PLAYBACK_RATE_MAX) {
             throw new IllegalArgumentException("playback rate out of bounds");
         }
-
-        if (mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
-            mAudioTrack.stop();
+        if (buf.mNumSamples > 0) {
+            if (mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+                mAudioTrack.stop();
+            }
+            // Clear mAudioTrack's internal buffer
+            // so the end of the last clip is not played.
+            if (buf.mNumSamples < mLastClipLengthSamples) {
+                flush();
+            }
+            mLastClipLengthSamples = buf.mNumSamples;
+            int rate_hz = getPlaybackSamplingRate(rate);
+            Log.d(TAG, String.format("Playing sample at %d hz", rate_hz));
+            mAudioTrack.write(buf.mBuffer, 0, buf.mNumSamples);
+            mAudioTrack.reloadStaticData();
+            mAudioTrack.setPlaybackRate(rate_hz);
+            Log.d(TAG, String.format("state: %d", mAudioTrack.getState()));
+            mAudioTrack.play();
         }
-
-        // Clear mAudioTrack's internal buffer
-        // so the end of the last clip is not played.
-        if (buf.mNumSamples < mLastClipLengthSamples) {
-            flush();
-        }
-        mLastClipLengthSamples = buf.mNumSamples;
-        int rate_hz = getPlaybackSamplingRate(rate);
-        Log.d(TAG, String.format("Playing sample at %d hz", rate_hz));
-        mAudioTrack.write(buf.mBuffer, 0, buf.mNumSamples);
-        mAudioTrack.reloadStaticData();
-        mAudioTrack.setPlaybackRate(rate_hz);
-        mAudioTrack.play();
     }
 
     /**
