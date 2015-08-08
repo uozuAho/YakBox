@@ -231,11 +231,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        try {
-            mBuffer.saveToFile(BUFFER_FILEPATH);
-        }
-        catch (IOException e) {
-            Log.e(TAG, "Error saving buffer to file", e);
+        if (mBuffer != null) {
+            try {
+                mBuffer.saveToFile(BUFFER_FILEPATH);
+            } catch (IOException e) {
+                Log.e(TAG, "Error saving buffer to file", e);
+            }
         }
         releaseAudioResources();
     }
