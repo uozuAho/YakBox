@@ -44,6 +44,8 @@ public class AudioRecorder {
         if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
             mAudioRecord.stop();
         }
+        mAudioRecord.release();
+        mAudioRecord = null;
     }
 
     /**
