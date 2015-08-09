@@ -3,13 +3,7 @@ package aho.uozu.yakbox;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioRecord;
-import android.media.AudioTrack;
-import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -36,8 +31,7 @@ public class MainActivity extends Activity {
 
     // constants
     private static final String TAG = "YakBox";
-    private static final String BUFFER_FILEPATH = Environment
-            .getExternalStorageDirectory().getAbsolutePath() + "/yakbox-sound.bin";
+    private static final String BUFFER_FILENAME = "yakbox-sound.bin";
     private static final int MAX_RECORD_TIME_S = 5;
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
@@ -142,7 +136,8 @@ public class MainActivity extends Activity {
         // init audio buffer
         if (mBuffer != null) {
             try {
-                mBuffer.loadFromFile(BUFFER_FILEPATH);
+                File f = new File(getFilesDir(), BUFFER_FILENAME);
+                mBuffer.loadFromFile(f);
             } catch (FileNotFoundException e) {
                 // do nothing - it's OK if there's no existing sound file
             } catch (IOException e) {
@@ -233,7 +228,8 @@ public class MainActivity extends Activity {
         super.onPause();
         if (mBuffer != null) {
             try {
-                mBuffer.saveToFile(BUFFER_FILEPATH);
+                File f = new File(getFilesDir(), BUFFER_FILENAME);
+                mBuffer.saveToFile(f);
             } catch (IOException e) {
                 Log.e(TAG, "Error saving buffer to file", e);
             }

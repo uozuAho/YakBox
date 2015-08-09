@@ -1,5 +1,6 @@
 package aho.uozu.yakbox;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,14 +27,8 @@ public class AudioBuffer {
         }
     }
 
-    public void clear() {
-        for (int i = 0; i < mBuffer.length; i++) {
-            mBuffer[i] = 0;
-        }
-    }
-
-    public void saveToFile(String path) throws IOException {
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
+    public void saveToFile(File fp) throws IOException {
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fp));
         oos.writeInt(mNumSamples);
         for (int i = 0; i < mNumSamples; i++) {
             oos.writeShort(mBuffer[i]);
@@ -42,8 +37,8 @@ public class AudioBuffer {
         oos.close();
     }
 
-    public void loadFromFile(String path) throws IOException {
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+    public void loadFromFile(File fp) throws IOException {
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fp));
         int num_samples_in_file = ois.readInt();
         // ensure not to overflow buffer, if saved sound is too big
         mNumSamples = Math.min(num_samples_in_file, mBuffer.length);
