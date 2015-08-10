@@ -4,4 +4,12 @@
     <string name="btn_say">Say</string>
     <string name="btn_play">Play</string>
     <string name="btn_yalp">yalP</string>
+
+    <!-- ACRA strings -->
+    <string name="acra_dialog_title">Oops!</string>
+    <string name="acra_dialog_text">YakBox crashed. Please help me fix it by sending an
+        error report :) Pressing send will open your email app. You can send the email
+        straight away, or add some comments if you want.</string>
+    <string name="acra_dialog_btn_no">No thanks</string>
+    <string name="acra_dialog_btn_yes">Send</string>
 </resources>
