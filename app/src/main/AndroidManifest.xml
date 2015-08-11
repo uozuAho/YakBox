@@ -3,8 +3,6 @@
     package="aho.uozu.yakbox" >
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- TODO: explain permissions to user -->
-    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- TODO: use styles resource instead of Theme.Holo here -->
     <application

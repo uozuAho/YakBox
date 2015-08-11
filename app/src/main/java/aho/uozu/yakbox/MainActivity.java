@@ -1,8 +1,6 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +9,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+
+import org.acra.ACRA;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -127,10 +127,11 @@ public class MainActivity extends Activity {
             });
         }
         catch (Exception e) {
-            Log.e(TAG, "init error", e);
             releaseAudioResources();
-            reportErrorAndClose("Error: couldn't initialise audio. Sorry!");
-            // TODO: send error report
+            // TODO: read logcat here for audio problems.
+            //       Looks like reading the log is not allowed since android 4.1
+            //       Any way around this...?
+            ACRA.getErrorReporter().handleException(e, true);
         }
 
         // init audio buffer
@@ -144,31 +145,6 @@ public class MainActivity extends Activity {
                 Log.e(TAG, "Error loading saved buffer", e);
             }
         }
-    }
-
-    /**
-     * Report error to the user (& devs?) & close the app.
-     * @param message
-     *      Message displayed to the user.
-     * @param btnText
-     *      Text on the button that closes the report (and app).
-     */
-    private void reportErrorAndClose(String message, String btnText) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder
-                .setMessage(message)
-                .setCancelable(false)
-                .setNeutralButton(btnText, new DialogInterface.OnClickListener() {
-                    public void onClick (DialogInterface dialog, int which) {
-                        finish();
-                    }
-                });
-        AlertDialog error = builder.create();
-        error.show();
-    }
-
-    private void reportErrorAndClose(String message) {
-        reportErrorAndClose(message, "Close app");
     }
 
     private void startRecording() {
