@@ -56,7 +56,6 @@ public class AudioPlayer {
             mAudioTrack.write(buf.mBuffer, 0, buf.mNumSamples);
             mAudioTrack.reloadStaticData();
             mAudioTrack.setPlaybackRate(rate_hz);
-            Log.d(TAG, String.format("state: %d", mAudioTrack.getState()));
             mAudioTrack.play();
         }
     }

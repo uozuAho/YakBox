@@ -20,8 +20,6 @@ public class AudioRecorder {
     public AudioRecorder(int record_time_s) throws Exception {
         mRecordTimeS = record_time_s;
         mAudioRecord = initAudioRecord();
-        if (mAudioRecord == null)
-            throw new Exception("Error initialising audio recorder");
         Log.d(TAG, "AudioRecorder initialised. Sample rate: " +
                 Integer.toString(mSampleRate));
     }
@@ -86,9 +84,9 @@ public class AudioRecorder {
 
     /**
      * Initialise AudioRecord object.
-     * @return Initialised AudioRecord object, or null.
+     * @return Initialised AudioRecord object.
      */
-    private AudioRecord initAudioRecord() {
+    private AudioRecord initAudioRecord() throws Exception {
         AudioRecord record = null;
         mSampleRate = findRecordingSampleRate();
         if (mSampleRate > 0) {
@@ -100,7 +98,8 @@ public class AudioRecorder {
             int state = record.getState();
             if (state != AudioRecord.STATE_INITIALIZED) {
                 record.release();
-                record = null;
+                throw new Exception(String.format(
+                        "Error initialising audio recorder. State: %d", state));
             }
         }
         return record;
