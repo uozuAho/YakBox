@@ -2,6 +2,7 @@ package aho.uozu.yakbox;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,10 +30,16 @@ public class MainActivity extends Activity {
     private AudioBuffer mBuffer = null;
     private AudioPlayer mPlayer = null;
 
+    // recording delay data
+    private long mLastRecordEndMillis = 0;
+    private boolean mIsRecording = false;
+
     // constants
     private static final String TAG = "YakBox";
     private static final String BUFFER_FILENAME = "yakbox-sound.bin";
     private static final int MAX_RECORD_TIME_S = 5;
+    // Delay between end of last recording and next recording
+    private static final int RECORD_WAIT_MS = 300;
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
 
@@ -148,19 +155,28 @@ public class MainActivity extends Activity {
     }
 
     private void startRecording() {
-        Log.d(TAG, "recording START");
-        mRecorder.startRecording();
-        mBtnSay.setBackgroundResource(R.drawable.round_button_red);
+        long interval = SystemClock.elapsedRealtime() - mLastRecordEndMillis;
+        if (!mIsRecording && interval > RECORD_WAIT_MS) {
+            Log.d(TAG, "recording START");
+            mRecorder.startRecording();
+            mBtnSay.setBackgroundResource(R.drawable.round_button_red);
+            mIsRecording = true;
+        }
     }
 
     private void stopRecording() {
-        Log.d(TAG, "recording STOP");
-        mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
-        mRecorder.stopRecording();
+        if (mIsRecording) {
+            Log.d(TAG, "recording STOP");
+            mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+            mRecorder.stopRecording();
 
-        // move recording from recorder to audio mBuffer
-        mBuffer.mNumSamples = mRecorder.read(mBuffer);
-        Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
+            // move recording from recorder to audio mBuffer
+            mBuffer.mNumSamples = mRecorder.read(mBuffer);
+            Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
+
+            mLastRecordEndMillis = SystemClock.elapsedRealtime();
+            mIsRecording = false;
+        }
     }
 
     private void playForward() {

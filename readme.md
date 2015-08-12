@@ -3,9 +3,11 @@ YakBak
 
 A YakBak emulator for Android.
 
-TODO:
+# TODO
+- bug: Recording & rotating device can sometimes cause crash, then can't
+       reopen app until after reboot (can't init audio record).
 # release
 See https://developer.android.com/tools/publishing/preparing.html
 - screenshots
 - banner pic?
-- test release build
+- tag just before release
