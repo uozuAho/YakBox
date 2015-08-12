@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/img_box"
-        android:src="@drawable/ic_launcher"
+        android:src="@drawable/ic_launcher_sml"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -18,7 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/img_txt"
-        android:src="@drawable/yak_box_txt"
+        android:src="@drawable/yak_box_txt_sml"
         android:layout_toRightOf="@+id/img_box" />
 
     <Button
