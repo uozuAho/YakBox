@@ -4,6 +4,8 @@
     <string name="btn_say">Say</string>
     <string name="btn_play">Play</string>
     <string name="btn_yalp">yalP</string>
+    <string name="txt_speed">Speed</string>
+    <string name="txt_1.0x">1.0x</string>
 
     <!-- ACRA strings -->
     <string name="acra_dialog_title">Oops!</string>

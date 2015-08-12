@@ -41,7 +41,7 @@
         android:background="@drawable/round_button_grey"
         android:layout_above="@+id/skb_speed"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="30dp"/>
 
     <Button
         android:id="@+id/button_yalp"
@@ -62,5 +62,25 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/txt_speed"
+        android:id="@+id/txtSpeedLabel"
+        android:textColor="#595959"
+        android:layout_above="@+id/skb_speed"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/txt_1.0x"
+        android:id="@+id/txt1.0xLabel"
+        android:textColor="#5d5d5d"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
