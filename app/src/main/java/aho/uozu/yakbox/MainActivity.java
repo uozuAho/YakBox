@@ -1,6 +1,7 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -152,6 +153,9 @@ public class MainActivity extends Activity {
                 Log.e(TAG, "Error loading saved buffer", e);
             }
         }
+
+        // make volume buttons adjust music stream
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
     }
 
     private void startRecording() {
