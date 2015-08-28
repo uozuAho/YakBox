@@ -1,6 +1,7 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
+import android.content.Context;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -11,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import org.acra.ACRA;
 
@@ -35,6 +37,8 @@ public class MainActivity extends Activity {
     private long mLastRecordEndMillis = 0;
     private boolean mIsRecording = false;
 
+    private boolean mShowedVolumeWarningOnPlay = false;
+
     // constants
     private static final String TAG = "YakBox";
     private static final String BUFFER_FILENAME = "yakbox-sound.bin";
@@ -43,6 +47,7 @@ public class MainActivity extends Activity {
     private static final int RECORD_WAIT_MS = 300;
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
+    private static final double LOW_VOLUME = 0.33;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,6 +161,24 @@ public class MainActivity extends Activity {
 
         // make volume buttons adjust music stream
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+        lowVolumeWarningIfNecessary();
+    }
+
+    /**
+     * Notify user if volume is lower than LOW_VOLUME
+     */
+    private void lowVolumeWarningIfNecessary() {
+        //getApplicationContext();
+        AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+        int vol = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int max_vol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int min_vol = (int) (LOW_VOLUME * max_vol);
+        String warn_txt = getString(R.string.low_volume_warning);
+        if (vol < min_vol) {
+            Toast.makeText(getApplicationContext(), warn_txt,
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private void startRecording() {
@@ -184,10 +207,18 @@ public class MainActivity extends Activity {
     }
 
     private void playForward() {
+        if (!mShowedVolumeWarningOnPlay) {
+            lowVolumeWarningIfNecessary();
+            mShowedVolumeWarningOnPlay = true;
+        }
         mPlayer.play(mBuffer, getPlaybackSpeed());
     }
 
     private void playReverse() {
+        if (!mShowedVolumeWarningOnPlay) {
+            lowVolumeWarningIfNecessary();
+            mShowedVolumeWarningOnPlay = true;
+        }
         mBuffer.reverse();
         mPlayer.play(mBuffer, getPlaybackSpeed());
         mBuffer.reverse();
