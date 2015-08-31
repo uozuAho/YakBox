@@ -89,6 +89,7 @@ public class AudioPlayer {
                 mBufferSizeBytes, AudioTrack.MODE_STATIC);
         int state = track.getState();
         if (state == AudioTrack.STATE_UNINITIALIZED) {
+            track.release();
             throw new Exception(String.format(
                     "Failed to initialise AudioTrack. State: %d", state));
         }
