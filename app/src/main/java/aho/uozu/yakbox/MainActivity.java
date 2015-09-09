@@ -250,6 +250,14 @@ public class MainActivity extends Activity {
         return ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
     }
 
+    private void saveRecording() {
+
+    }
+
+    private void loadRecording() {
+
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -293,13 +301,15 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_save:
+                saveRecording();
+                return true;
+            case R.id.action_load:
+                loadRecording();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 }
