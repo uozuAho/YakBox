@@ -11,6 +11,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
+        <!-- main activity -->
         <activity
             android:name="aho.uozu.yakbox.MainActivity"
             android:label="@string/app_name" >
@@ -21,12 +22,14 @@
             </intent-filter>
         </activity>
 
+        <!-- ACRA -->
         <activity android:name="org.acra.CrashReportDialog"
             android:theme="@style/Theme.Dialog"
             android:process=":error_report"
             android:launchMode="singleInstance"
             android:excludeFromRecents="true"
-            android:finishOnTaskLaunch="true" />
+            android:finishOnTaskLaunch="true">
+        </activity>
     </application>
 
 </manifest>
