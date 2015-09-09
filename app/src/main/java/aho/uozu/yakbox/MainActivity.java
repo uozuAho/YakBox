@@ -1,17 +1,21 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.acra.ACRA;
@@ -250,11 +254,37 @@ public class MainActivity extends Activity {
         return ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
     }
 
-    private void saveRecording() {
+    private void showSaveDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.dialog_save, null);
+        final TextView filenameTextView =
+                (EditText) dialogView.findViewById(R.id.save_filename);
 
+        builder
+            .setMessage(R.string.save_dialog_title)
+            .setView(dialogView)
+            .setPositiveButton(R.string.save_dialog_positive,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        saveRecording(filenameTextView.getText().toString());
+                    }
+                })
+            .setNegativeButton(R.string.save_dialog_negative,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+        builder.show();
     }
 
-    private void loadRecording() {
+    private void saveRecording(String name) {
+        String msg = "Saved: " + name;
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+    }
+
+    private void showLoadDialog() {
 
     }
 
@@ -303,10 +333,10 @@ public class MainActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_save:
-                saveRecording();
+                showSaveDialog();
                 return true;
             case R.id.action_load:
-                loadRecording();
+                showLoadDialog();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
