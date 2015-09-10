@@ -3,6 +3,12 @@
     package="aho.uozu.yakbox" >
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE">
+        Uses external storage to load and save recordings.
+    </uses-permission>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE">
+        Uses external storage to load and save recordings.
+    </uses-permission>
 
     <application
         android:name="App"

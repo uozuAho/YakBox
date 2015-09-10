@@ -280,6 +280,7 @@ public class MainActivity extends Activity {
     }
 
     private void saveRecording(String name) {
+        // Show saved toast to user
         String msg = "Saved: " + name;
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
     }
