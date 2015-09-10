@@ -1,63 +1,148 @@
 package wav;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
 
+/**
+ * A quick and dirty wave file class for saving and
+ * loading audio data to/from 'WAVE' files. Only supports
+ * 16 bit, 1 channel PCM wave files at the moment.
+ */
 public class WaveFile {
-    private void properWAV(short[] data, String path) {
 
-        int numSamples = data.length;
-        int numChannels = 1;
-        int bitsPerSample = 16;
-        long sampleRate = 22100;
+    private final int numSamples;
+    private final short numChannels;
+    private final short bitsPerSample;
+    private final int sampleRate;
 
-        long mySubChunk1Size = 16; // wtf is this? sample size in bits?
-        int FORMAT_CODE_PCM = 1;
-        long myChannels = 1;
-        long byteRate = sampleRate * myChannels * bitsPerSample / 8;
-        int myBlockAlign = (int) (myChannels * bitsPerSample / 8);
+    private final int byteRate;
+    private final short frameSize;
+    private final int audioDataSize;
+    private final short[] audioData;
 
-        long audioDataSize =  numSamples * numChannels * bitsPerSample / 8;
-        // Not sure if this is the total file size,
-        // but it's what goes into bytes 4-7 of the wave file
-        long totalFileSize = 36 + audioDataSize;
+    private static final short FORMAT_CODE_PCM = 1;
+    private static final int HEADER_LEN = 44;
 
-        OutputStream os;
+    private WaveFile(Builder builder) {
+        numSamples = builder.audioData.length;
+        numChannels = builder.numChannels;
+        bitsPerSample = builder.bitsPerSample;
+        sampleRate = builder.sampleRate;
+
+        byteRate = sampleRate * numChannels * bitsPerSample / 8;
+        frameSize = (short) (numChannels * bitsPerSample / 8);
+        audioDataSize =  numSamples * numChannels * bitsPerSample / 8;
+        audioData = builder.audioData;
+    }
+
+    public static class Builder {
+        private short numChannels;
+        private short bitsPerSample;
+        private int sampleRate;
+        private short[] audioData;
+
+        public Builder() {}
+
+        public Builder channels(int numChannels) {
+            this.numChannels = (short) numChannels;
+            return this;
+        }
+
+        // This could be inferred from audio data
+        public Builder bitDepth(int bitsPerSample) {
+            this.bitsPerSample = (short) bitsPerSample;
+            return this;
+        }
+
+        public Builder sampleRate(int sampleRate) {
+            this.sampleRate = sampleRate;
+            return this;
+        }
+
+        public Builder data(short[] audioData) {
+            this.audioData = audioData;
+            return this;
+        }
+
+        public WaveFile build() { return new WaveFile(this); }
+    }
+
+    public void writeToFile(String path) {
+        // This is actually total file size - 8 bytes,
+        // couldn't think of a better variable name
+        // 44 byte header + audio data - 8
+        int totalFileSize = HEADER_LEN + audioDataSize - 8;
+
+        // Create the header
+        ByteBuffer header = ByteBuffer.allocate(HEADER_LEN);
+        header.order(ByteOrder.LITTLE_ENDIAN);
+        for (byte b : "RIFF".getBytes()) { header.put(b); }      // 00: RIFF
+        header.putInt(totalFileSize);                            // 04: total size?
+        for (byte b : "WAVE".getBytes()) { header.put(b); }      // 08: WAVE
+        for (byte b : "fmt ".getBytes()) { header.put(b); }      // 12: fmt
+        header.putInt(16);                                       // 16: length of 'fmt' section - always 16
+        header.putShort(FORMAT_CODE_PCM);                        // 20: format
+        header.putShort(numChannels);                            // 22: num channels
+        header.putInt(sampleRate);                               // 24: sample rate
+        header.putInt(byteRate);                                 // 28: byte rate
+        header.putShort(frameSize);                              // 32: frame size
+        header.putShort(bitsPerSample);                          // 34: bit depth
+        for (byte b : "data".getBytes()) { header.put(b); }      // 36: data
+        header.putInt(audioDataSize);                            // 40: audio data size
+        header.flip();
+
         try {
-            os = new FileOutputStream(new File(path));
-            BufferedOutputStream bos = new BufferedOutputStream(os);
-            DataOutputStream outFile = new DataOutputStream(bos);
-
-            // TODO: endian-ness correct?
-            // maybe use ByteBuffer here, which allows setting of byte order with order()
-            outFile.writeBytes("RIFF");                                 // 00 - RIFF
-            outFile.writeInt((int) totalFileSize);      // 04 - how big is the rest of this file?
-            outFile.writeBytes("WAVE");                                 // 08 - WAVE
-            outFile.writeBytes("fmt ");                                 // 12 - fmt
-            outFile.writeInt((int) mySubChunk1Size);  // 16 - size of this chunk
-            outFile.writeShort((short) FORMAT_CODE_PCM);     // 20 - what is the audio format? 1 for PCM = Pulse Code Modulation
-            outFile.writeShort((short) numChannels);   // 22 - mono or stereo? 1 or 2?  (or 5 or ???)
-            outFile.writeInt((int) sampleRate);     // 24 - samples per second (numbers per second)
-            outFile.writeInt((int) byteRate);       // 28 - bytes per second
-            outFile.writeShort((short) myBlockAlign); // 32 - # of bytes in one sample, for all channels
-            outFile.write(shortToByteArray((short) bitsPerSample), 0, 2);  // 34 - how many bits in a sample(number)?  usually 16 or 24
-            outFile.writeBytes("data");                                 // 36 - data
-            outFile.write(intToByteArray((int) myDataSize), 0, 4);       // 40 - how big is this data chunk
-            outFile.write(clipData);                                    // 44 - the actual data itself - just a long string of numbers
-
-            outFile.flush();
-            outFile.close();
+            FileOutputStream os = new FileOutputStream(new File(path));
+            FileChannel fc = os.getChannel();
+            ByteBuffer audio = ByteBuffer.allocate(audioDataSize);
+            audio.order(ByteOrder.LITTLE_ENDIAN);
+            for (short s : audioData) { audio.putShort(s); }
+            audio.flip();
+            while (header.hasRemaining())
+                fc.write(header);
+            while (audio.hasRemaining())
+                fc.write(audio);
+            fc.close();
+            os.flush();
+            os.close();
         }
-        catch (FileNotFoundException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
-        catch (IOException e) {
-            e.printStackTrace();
+    }
+
+    // TODO: fromFile
+
+    // for testing... TODO: move this
+    private static short[] sineWave(int len_s, int freq, int sampleRate) {
+        int amplitude = Short.MAX_VALUE;  // crank it up!
+        int num_samples = sampleRate * len_s;
+        short[] samples = new short[num_samples];
+
+        for (int i = 0; i < num_samples; i++) {
+            double time_s = (double) i * len_s / num_samples;
+            samples[i] = (short) (amplitude * Math.sin(2 * Math.PI * freq * time_s));
         }
+        return samples;
+    }
+
+    // cheap unit test
+    public static void main(String[] args) {
+        // create a sine wave, write to file
+        int sampleRate = 22050;
+        short[] audio = sineWave(2, 440, sampleRate);
+        WaveFile wav = new Builder()
+                .data(audio)
+                .sampleRate(sampleRate)
+                .bitDepth(16)
+                .channels(1)
+                .build();
+        String dir = Paths.get(".").toAbsolutePath().normalize().toString();
+        String path = dir + "/asdf.wav";
+        wav.writeToFile(path);
     }
 }
