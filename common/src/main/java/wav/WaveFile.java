@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
-import java.nio.file.Paths;
 
 /**
  * A quick and dirty wave file class for saving and
@@ -81,7 +80,7 @@ public class WaveFile {
         ByteBuffer header = ByteBuffer.allocate(HEADER_LEN);
         header.order(ByteOrder.LITTLE_ENDIAN);
         for (byte b : "RIFF".getBytes()) { header.put(b); }      // 00: RIFF
-        header.putInt(totalFileSize);                            // 04: total size?
+        header.putInt(totalFileSize);                            // 04: total size - 8
         for (byte b : "WAVE".getBytes()) { header.put(b); }      // 08: WAVE
         for (byte b : "fmt ".getBytes()) { header.put(b); }      // 12: fmt
         header.putInt(16);                                       // 16: length of 'fmt' section - always 16
@@ -141,8 +140,7 @@ public class WaveFile {
                 .bitDepth(16)
                 .channels(1)
                 .build();
-        String dir = Paths.get(".").toAbsolutePath().normalize().toString();
-        String path = dir + "/asdf.wav";
+        String path = "/tmp/asdf.wav";
         wav.writeToFile(path);
     }
 }

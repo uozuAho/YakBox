@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,6 +24,8 @@ import org.acra.ACRA;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import wav.WaveFile;
 
 public class MainActivity extends Activity {
 
@@ -280,9 +283,34 @@ public class MainActivity extends Activity {
     }
 
     private void saveRecording(String name) {
-        // Show saved toast to user
-        String msg = "Saved: " + name;
-        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        if (!isExternalStorageWriteable()) {
+            String msg = "Can't access storage!";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        }
+        else {
+            // TODO: confirm overwrite
+            // TODO: show existing files that match currently entered name
+            // TODO: save with current speed
+            // TODO: save as reverse/forward option
+            WaveFile wav = new WaveFile.Builder()
+                    .data(mBuffer.mBuffer)
+                    .sampleRate(mRecorder.getSampleRate())
+                    .bitDepth(16)
+                    .channels(1)
+                    .build();
+            String path = getExternalFilesDir(null) + "/" + name + ".wav";
+            Log.d(TAG, path);
+            wav.writeToFile(path);
+
+            // Show saved toast to user
+            String msg = "Saved: " + name;
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private boolean isExternalStorageWriteable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     private void showLoadDialog() {
