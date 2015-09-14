@@ -16,6 +16,9 @@
     <string name="save_dialog_title">Save</string>
     <string name="save_dialog_positive">Save</string>
     <string name="save_dialog_negative">Cancel</string>
+    <string name="load_dialog_title">Load</string>
+    <string name="load_dialog_positive">Load</string>
+    <string name="load_dialog_negative">Cancel</string>
 
     <!-- ACRA strings -->
     <string name="acra_dialog_title">Oops!</string>

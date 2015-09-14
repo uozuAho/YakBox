@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -24,6 +25,8 @@ import org.acra.ACRA;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import wav.WaveFile;
 
@@ -265,7 +268,7 @@ public class MainActivity extends Activity {
                 (EditText) dialogView.findViewById(R.id.save_filename);
 
         builder
-            .setMessage(R.string.save_dialog_title)
+            .setTitle(R.string.save_dialog_title)
             .setView(dialogView)
             .setPositiveButton(R.string.save_dialog_positive,
                 new DialogInterface.OnClickListener() {
@@ -275,10 +278,10 @@ public class MainActivity extends Activity {
                     }
                 })
             .setNegativeButton(R.string.save_dialog_negative,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                    }
-                });
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                        }
+                    });
         builder.show();
     }
 
@@ -291,7 +294,6 @@ public class MainActivity extends Activity {
             // TODO: confirm overwrite
             // TODO: show existing files that match currently entered name
             // TODO: save with current speed
-            // TODO: save as reverse/forward option
             WaveFile wav = new WaveFile.Builder()
                     .data(mBuffer.mBuffer)
                     .sampleRate(mRecorder.getSampleRate())
@@ -314,7 +316,64 @@ public class MainActivity extends Activity {
     }
 
     private void showLoadDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.dialog_load, null);
+        final ArrayAdapter<String> filesList = new ArrayAdapter<>(this,
+                R.layout.dialog_load_item, getSavedRecordingNames());
 
+        builder
+                .setTitle(R.string.load_dialog_title)
+                .setView(dialogView)
+                .setAdapter(filesList, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String filename = filesList.getItem(which);
+                        loadRecording(filename);
+                    }
+                })
+                .setNegativeButton(R.string.load_dialog_negative,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                            }
+                        });
+        builder.show();
+    }
+
+    private void loadRecording(String path) {
+        // TODO: load the recording. Set speed slider according to sample rate?
+        // Show saved toast to user
+        String msg = "Loaded: " + path;
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Returns an array of paths to all wave files in this app's
+     * external storage directory.
+     */
+    private String[] getSavedRecordingNames() {
+        List<File> waveFiles = getAllWaveFiles();
+        String[] names = new String[waveFiles.size()];
+        for (int i = 0; i < waveFiles.size(); i++) {
+            names[i] = savedFileToRecordingName(waveFiles.get(i));
+        }
+        return names;
+    }
+
+    private List<File> getAllWaveFiles() {
+        List<File> waveFiles = new ArrayList<>();
+        // TODO: check external storage first
+        for (File f : getExternalFilesDir(null).listFiles()) {
+            if (f.toString().endsWith(".wav")) {
+                waveFiles.add(f);
+            }
+        }
+        return waveFiles;
+    }
+
+    private String savedFileToRecordingName(File file) {
+        String filename = file.getName();
+        return filename.substring(0, filename.length() - 4);
     }
 
     @Override
