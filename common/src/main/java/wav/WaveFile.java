@@ -1,8 +1,9 @@
 package wav;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -29,6 +30,7 @@ public class WaveFile {
         sampleRate = builder.sampleRate;
 
         audioDataSize =  numSamples * numChannels * bitsPerSample / 8;
+        // TODO: defensive copy for immutability???? mehg.....
         audioData = builder.audioData;
     }
 
@@ -64,7 +66,7 @@ public class WaveFile {
         public WaveFile build() { return new WaveFile(this); }
     }
 
-    public void writeToFile(String path) {
+    public void writeToFile(String path) throws IOException {
         WaveFileHeader header = new WaveFileHeader.Builder()
                 .sampleRate(sampleRate)
                 .dataSize(audioDataSize)
@@ -74,22 +76,70 @@ public class WaveFile {
                 .build();
         ByteBuffer headerBytes = header.asByteBuffer();
 
-        try {
-            FileOutputStream os = new FileOutputStream(new File(path));
-            FileChannel fc = os.getChannel();
-            ByteBuffer audio = audioAsByteBuffer();
-            while (headerBytes.hasRemaining())
-                fc.write(headerBytes);
-            while (audio.hasRemaining())
-                fc.write(audio);
-            fc.close();
-            os.flush();
-            os.close();
+        FileOutputStream os = new FileOutputStream(new File(path));
+        FileChannel fc = os.getChannel();
+        ByteBuffer audio = audioAsByteBuffer();
+        while (headerBytes.hasRemaining())
+            fc.write(headerBytes);
+        while (audio.hasRemaining())
+            fc.write(audio);
+        fc.close();
+        os.flush();
+        os.close();
+    }
+
+    public static WaveFile fromFile(String path) throws IOException {
+        FileInputStream is = new FileInputStream(new File(path));
+        FileChannel fc = is.getChannel();
+
+        // get header
+        ByteBuffer headerBytes = ByteBuffer.allocate(WaveFileHeader.HEADER_LEN);
+        while (headerBytes.hasRemaining()) {
+            fc.read(headerBytes);
         }
-        // TODO: don't catch everything here
-        catch (Exception e) {
-            e.printStackTrace();
+        headerBytes.flip();
+        WaveFileHeader header = WaveFileHeader.read(headerBytes);
+
+        // get audio data
+        ByteBuffer audioBytes = ByteBuffer.allocate(header.getAudioDataSize());
+        while (audioBytes.hasRemaining()) {
+            fc.read(audioBytes);
         }
+        fc.close();
+        audioBytes.flip();
+
+        audioBytes.order(ByteOrder.LITTLE_ENDIAN);
+        short[] audioData = new short[header.getNumSamples()];
+        for (int i = 0; i < header.getNumSamples(); i++) {
+            audioData[i] = audioBytes.getShort();
+        }
+
+        return new Builder()
+                .bitDepth(header.getBitDepth())
+                .channels(header.getNumChannels())
+                .sampleRate(header.getSampleRate())
+                .data(audioData)
+                .build();
+    }
+
+    public int getNumChannels() {
+        return numChannels;
+    }
+
+    public int getBitsPerSample() {
+        return bitsPerSample;
+    }
+
+    public int getSampleRate() {
+        return sampleRate;
+    }
+
+    public short[] getAudioData() {
+        return audioData;
+    }
+
+    public int getNumSamples() {
+        return numSamples;
     }
 
     private ByteBuffer audioAsByteBuffer() {
@@ -100,7 +150,4 @@ public class WaveFile {
         return audio;
     }
 
-    public static WaveFile fromFile(String path) throws FileNotFoundException {
-        return null;
-    }
 }

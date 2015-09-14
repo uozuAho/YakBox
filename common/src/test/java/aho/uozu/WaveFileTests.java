@@ -1,6 +1,10 @@
 package aho.uozu;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import wav.WaveFile;
 
@@ -9,23 +13,30 @@ public class WaveFileTests {
     private static final String TEST_FILE_PATH = "/tmp/asdf.wav";
 
     @Test
-    public void writeToFile() {
-        // create a sine wave, write to file
+    public void toAndFromFile() throws IOException {
+        int len_s = 2;
         int sampleRate = 22050;
-        short[] audio = sineWave(2, 440, sampleRate);
-        WaveFile wav = new WaveFile.Builder()
+        int numSamples = len_s * sampleRate;
+        int bitDepth = 16;
+        int numChannels = 1;
+        short[] audio = sineWave(len_s, 440, sampleRate);
+
+        WaveFile wavOut = new WaveFile.Builder()
                 .data(audio)
                 .sampleRate(sampleRate)
-                .bitDepth(16)
-                .channels(1)
+                .bitDepth(bitDepth)
+                .channels(numChannels)
                 .build();
         String path = TEST_FILE_PATH;
-        wav.writeToFile(path);
-    }
+        wavOut.writeToFile(path);
 
-    @Test
-    public void fromFile() {
-
+        WaveFile wavIn;
+        wavIn = WaveFile.fromFile(TEST_FILE_PATH);
+        Assert.assertEquals(sampleRate, wavIn.getSampleRate());
+        Assert.assertEquals(numSamples, wavIn.getNumSamples());
+        Assert.assertEquals(bitDepth, wavIn.getBitsPerSample());
+        Assert.assertEquals(numChannels, wavIn.getNumChannels());
+        Assert.assertArrayEquals(sineWave(len_s, 440, sampleRate), wavIn.getAudioData());
     }
 
     /**
@@ -43,4 +54,5 @@ public class WaveFileTests {
         }
         return samples;
     }
+
 }

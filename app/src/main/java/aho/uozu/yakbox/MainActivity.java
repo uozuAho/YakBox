@@ -286,7 +286,7 @@ public class MainActivity extends Activity {
     }
 
     private void saveRecording(String name) {
-        if (!isExternalStorageWriteable()) {
+        if (!isExternalStorageReadWriteable()) {
             String msg = "Can't access storage!";
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }
@@ -310,12 +310,18 @@ public class MainActivity extends Activity {
         }
     }
 
-    private boolean isExternalStorageWriteable() {
+    private boolean isExternalStorageReadWriteable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     private void showLoadDialog() {
+        if (!isExternalStorageReadWriteable()) {
+            String msg = "Can't access storage!";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         final View dialogView = inflater.inflate(R.layout.dialog_load, null);
@@ -362,10 +368,14 @@ public class MainActivity extends Activity {
 
     private List<File> getAllWaveFiles() {
         List<File> waveFiles = new ArrayList<>();
-        // TODO: check external storage first
-        for (File f : getExternalFilesDir(null).listFiles()) {
-            if (f.toString().endsWith(".wav")) {
-                waveFiles.add(f);
+        if (isExternalStorageReadWriteable()) {
+            File dir = getExternalFilesDir(null);
+            if (dir != null) {
+                for (File f : dir.listFiles()) {
+                    if (f.toString().endsWith(".wav")) {
+                        waveFiles.add(f);
+                    }
+                }
             }
         }
         return waveFiles;

@@ -1,11 +1,7 @@
 package wav;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
 
 
 class WaveFileHeader {
@@ -14,6 +10,7 @@ class WaveFileHeader {
     private final int sampleRate;
     private final short bitDepth;
     private final int audioDataSize;
+    private final int numSamples;
 
     public static final int HEADER_LEN = 44;
 
@@ -23,6 +20,7 @@ class WaveFileHeader {
         sampleRate = b.sampleRate;
         bitDepth = b.bitDepth;
         audioDataSize = b.audioDataSize;
+        numSamples = b.audioDataSize / getFrameSize();
     }
 
     public static class Builder {
@@ -66,6 +64,7 @@ class WaveFileHeader {
 
     public static WaveFileHeader read(ByteBuffer buffer) {
         Builder builder = new Builder();
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
         // skip past unnecessary data
         buffer.getInt(); // riff
         buffer.getInt(); // size
@@ -81,17 +80,6 @@ class WaveFileHeader {
         buffer.getInt(); // 'data'
         builder.dataSize(buffer.getInt());
         return builder.build();
-    }
-
-    public static WaveFileHeader read(String path) throws IOException {
-        FileInputStream is = new FileInputStream(new File(path));
-        FileChannel fc = is.getChannel();
-        ByteBuffer buffer = ByteBuffer.allocate(HEADER_LEN);
-        while (buffer.hasRemaining()) {
-            fc.read(buffer);
-        }
-        buffer.flip();
-        return read(buffer);
     }
 
     public ByteBuffer asByteBuffer() {
@@ -113,6 +101,33 @@ class WaveFileHeader {
         // flip buffer - now ready for reading (?)
         buffer.flip();
         return buffer;
+    }
+
+    public Format getFormat() {
+        return format;
+    }
+
+    public int getNumChannels() {
+        return numChannels;
+    }
+
+    public int getSampleRate() {
+        return sampleRate;
+    }
+
+    public int getBitDepth() {
+        return bitDepth;
+    }
+
+    public int getNumSamples() {
+        return numSamples;
+    }
+
+    /**
+     * Get the size of the audio data, in bytes
+     */
+    public int getAudioDataSize() {
+        return audioDataSize;
     }
 
     private int getByteRate() {
