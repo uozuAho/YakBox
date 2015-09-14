@@ -36,7 +36,10 @@ public class WaveFileTests {
         Assert.assertEquals(numSamples, wavIn.getNumSamples());
         Assert.assertEquals(bitDepth, wavIn.getBitsPerSample());
         Assert.assertEquals(numChannels, wavIn.getNumChannels());
-        Assert.assertArrayEquals(sineWave(len_s, 440, sampleRate), wavIn.getAudioData());
+
+        short[] audioIn = new short[audio.length];
+        wavIn.getAudioData(audioIn);
+        Assert.assertArrayEquals(sineWave(len_s, 440, sampleRate), audioIn);
     }
 
     /**

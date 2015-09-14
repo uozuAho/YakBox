@@ -10,8 +10,10 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
-- save/load recordings
-    + send?
+- save/load
+    + full 5s of audio buffer is getting saved - only save up to numSamples
+- ability to delete recordings
+    + might need a dedicated load view, hold to mark/delete item
 - options / settings
     + think of some options...
 - add user guide

@@ -134,8 +134,13 @@ public class WaveFile {
         return sampleRate;
     }
 
-    public short[] getAudioData() {
-        return audioData;
+    /**
+     * Copy internal audio data to the given buffer.
+     */
+    public void getAudioData(short[] buffer) {
+        if (buffer.length < numSamples)
+            throw new IllegalArgumentException("Output buffer too small");
+        System.arraycopy(audioData, 0, buffer, 0, audioData.length);
     }
 
     public int getNumSamples() {

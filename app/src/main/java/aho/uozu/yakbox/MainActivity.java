@@ -271,12 +271,12 @@ public class MainActivity extends Activity {
             .setTitle(R.string.save_dialog_title)
             .setView(dialogView)
             .setPositiveButton(R.string.save_dialog_positive,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        saveRecording(filenameTextView.getText().toString());
-                    }
-                })
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            saveRecording(filenameTextView.getText().toString());
+                        }
+                    })
             .setNegativeButton(R.string.save_dialog_negative,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
@@ -302,11 +302,17 @@ public class MainActivity extends Activity {
                     .build();
             String path = getExternalFilesDir(null) + "/" + name + ".wav";
             Log.d(TAG, path);
-            wav.writeToFile(path);
-
-            // Show saved toast to user
-            String msg = "Saved: " + name;
-            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            try {
+                wav.writeToFile(path);
+                // Show saved toast to user
+                String msg = "Saved: " + name;
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            }
+            catch (IOException e) {
+                Log.e(TAG, "Error saving file", e);
+                String msg = "Error saving file!";
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -346,10 +352,23 @@ public class MainActivity extends Activity {
         builder.show();
     }
 
-    private void loadRecording(String path) {
+    private void loadRecording(String name) {
+        File recording = recordingNameToFile(name);
+        if (recording != null) {
+            try {
+                WaveFile wav = WaveFile.fromFile(recording.toString());
+                wav.getAudioData(mBuffer.mBuffer);
+                mBuffer.mNumSamples = wav.getNumSamples();
+            } catch (IOException e) {
+                Log.e(TAG, "Error loading recording", e);
+                String msg = "Error loading file!";
+                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            }
+        }
+
         // TODO: load the recording. Set speed slider according to sample rate?
         // Show saved toast to user
-        String msg = "Loaded: " + path;
+        String msg = "Loaded: " + name;
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
     }
 
@@ -361,7 +380,7 @@ public class MainActivity extends Activity {
         List<File> waveFiles = getAllWaveFiles();
         String[] names = new String[waveFiles.size()];
         for (int i = 0; i < waveFiles.size(); i++) {
-            names[i] = savedFileToRecordingName(waveFiles.get(i));
+            names[i] = fileToRecordingName(waveFiles.get(i));
         }
         return names;
     }
@@ -381,9 +400,21 @@ public class MainActivity extends Activity {
         return waveFiles;
     }
 
-    private String savedFileToRecordingName(File file) {
+    private String fileToRecordingName(File file) {
         String filename = file.getName();
         return filename.substring(0, filename.length() - 4);
+    }
+
+    private File recordingNameToFile(String name) {
+        File file = null;
+        if (isExternalStorageReadWriteable()) {
+            File dir = getExternalFilesDir(null);
+            if (dir != null) {
+                String path = dir.toString() + "/" + name + ".wav";
+                file = new File(path);
+            }
+        }
+        return file;
     }
 
     @Override
