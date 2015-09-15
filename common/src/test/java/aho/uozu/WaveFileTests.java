@@ -3,7 +3,6 @@ package aho.uozu;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import wav.WaveFile;
@@ -33,7 +32,7 @@ public class WaveFileTests {
         WaveFile wavIn;
         wavIn = WaveFile.fromFile(TEST_FILE_PATH);
         Assert.assertEquals(sampleRate, wavIn.getSampleRate());
-        Assert.assertEquals(numSamples, wavIn.getNumSamples());
+        Assert.assertEquals(numSamples, wavIn.getNumFrames());
         Assert.assertEquals(bitDepth, wavIn.getBitsPerSample());
         Assert.assertEquals(numChannels, wavIn.getNumChannels());
 

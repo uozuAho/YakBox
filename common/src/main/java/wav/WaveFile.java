@@ -15,7 +15,7 @@ import java.nio.channels.FileChannel;
  */
 public class WaveFile {
 
-    private final int numSamples;
+    private final int numFrames;
     private final short numChannels;
     private final short bitsPerSample;
     private final int sampleRate;
@@ -24,14 +24,19 @@ public class WaveFile {
     private final short[] audioData;
 
     private WaveFile(Builder builder) {
-        numSamples = builder.audioData.length;
+        if (builder.numFrames == 0) {
+            numFrames = builder.audioData.length;
+        }
+        else {
+            numFrames = builder.numFrames;
+        }
         numChannels = builder.numChannels;
         bitsPerSample = builder.bitsPerSample;
         sampleRate = builder.sampleRate;
 
-        audioDataSize =  numSamples * numChannels * bitsPerSample / 8;
-        audioData = new short[numSamples];
-        System.arraycopy(builder.audioData, 0, audioData, 0, numSamples);
+        audioDataSize =  numFrames * numChannels * bitsPerSample / 8;
+        audioData = new short[numFrames];
+        System.arraycopy(builder.audioData, 0, audioData, 0, numFrames);
     }
 
     public static class Builder {
@@ -39,27 +44,49 @@ public class WaveFile {
         private short bitsPerSample;
         private int sampleRate;
         private short[] audioData;
+        private int numFrames;
 
         public Builder() {}
 
+        /**
+         * Set number of audio channels
+         */
         public Builder channels(int numChannels) {
             this.numChannels = (short) numChannels;
             return this;
         }
 
-        // This could be inferred from audio data
+        /**
+         * Set bit depth / bits per sample
+         */
         public Builder bitDepth(int bitsPerSample) {
             this.bitsPerSample = (short) bitsPerSample;
             return this;
         }
 
+        /**
+         * Set sample rate in Hertz
+         */
         public Builder sampleRate(int sampleRate) {
             this.sampleRate = sampleRate;
             return this;
         }
 
+        /**
+         * Set buffer containing audio data
+         */
         public Builder data(short[] audioData) {
             this.audioData = audioData;
+            return this;
+        }
+
+        /**
+         * [Optional]
+         * Set number of frames of the audio buffer to use.
+         * If not set, the entire audio buffer is used.
+         */
+        public Builder numFrames(int numFrames) {
+            this.numFrames = numFrames;
             return this;
         }
 
@@ -138,13 +165,13 @@ public class WaveFile {
      * Copy internal audio data to the given buffer.
      */
     public void getAudioData(short[] buffer) {
-        if (buffer.length < numSamples)
+        if (buffer.length < numFrames)
             throw new IllegalArgumentException("Output buffer too small");
         System.arraycopy(audioData, 0, buffer, 0, audioData.length);
     }
 
-    public int getNumSamples() {
-        return numSamples;
+    public int getNumFrames() {
+        return numFrames;
     }
 
     private ByteBuffer audioAsByteBuffer() {

@@ -296,6 +296,7 @@ public class MainActivity extends Activity {
             // TODO: save with current speed
             WaveFile wav = new WaveFile.Builder()
                     .data(mBuffer.mBuffer)
+                    .numFrames(mBuffer.mNumSamples)
                     .sampleRate(mRecorder.getSampleRate())
                     .bitDepth(16)
                     .channels(1)
@@ -358,7 +359,7 @@ public class MainActivity extends Activity {
             try {
                 WaveFile wav = WaveFile.fromFile(recording.toString());
                 wav.getAudioData(mBuffer.mBuffer);
-                mBuffer.mNumSamples = wav.getNumSamples();
+                mBuffer.mNumSamples = wav.getNumFrames();
             } catch (IOException e) {
                 Log.e(TAG, "Error loading recording", e);
                 String msg = "Error loading file!";
@@ -366,7 +367,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        // TODO: load the recording. Set speed slider according to sample rate?
+        // TODO: Set speed slider according to sample rate?
         // Show saved toast to user
         String msg = "Loaded: " + name;
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
