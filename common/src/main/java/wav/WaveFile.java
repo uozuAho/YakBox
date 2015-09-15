@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
 /**
- * A quick and dirty wave file class for saving and
+ * An immutable wave file class for saving and
  * loading audio data to/from 'WAVE' files. Only supports
  * 16 bit, 1 channel PCM wave files at the moment.
  */
@@ -30,8 +30,8 @@ public class WaveFile {
         sampleRate = builder.sampleRate;
 
         audioDataSize =  numSamples * numChannels * bitsPerSample / 8;
-        // TODO: defensive copy for immutability???? mehg.....
-        audioData = builder.audioData;
+        audioData = new short[numSamples];
+        System.arraycopy(builder.audioData, 0, audioData, 0, numSamples);
     }
 
     public static class Builder {
