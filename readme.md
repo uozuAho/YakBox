@@ -10,11 +10,17 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
-- save/load
-    + full 5s of audio buffer is getting saved - only save up to numSamples
+## save/load
+- make item text smaller in load dialog
+- show keyboard on save dialog
 - ability to delete recordings
     + might need a dedicated load view, hold to mark/delete item
+- all other todos relating to save/load/delete
+
+## Unscheduled
 - options / settings
-    + think of some options...
+    + think of some options...colour scheme?
 - add user guide
     + written & graphical format (overlay info on GUI)
+- refactor
+    + MainActivity's getting big
