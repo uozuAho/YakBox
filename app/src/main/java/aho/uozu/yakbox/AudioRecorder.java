@@ -17,7 +17,15 @@ public class AudioRecorder {
     private static final String TAG = "YakBox-AudioRecorder";
 
 
-    public AudioRecorder(int record_time_s) throws Exception {
+    /**
+     * Initialise the audio recorder.
+     *
+     * @param record_time_s Maximum recording length in seconds
+     * @throws UnsupportedOperationException if hardware not supported
+     * @throws IllegalStateException if error initialising audio recorder
+     */
+    public AudioRecorder(int record_time_s)
+            throws UnsupportedOperationException, IllegalStateException {
         mRecordTimeS = record_time_s;
         mAudioRecord = initAudioRecord();
         Log.d(TAG, "AudioRecorder initialised. Sample rate: " +
@@ -84,38 +92,39 @@ public class AudioRecorder {
 
     /**
      * Initialise AudioRecord object.
+     *
      * @return Initialised AudioRecord object.
+     * @throws UnsupportedOperationException if audio hardware is unsupported
+     * @throws IllegalStateException if audio recorder could not be initialised
      */
-    private AudioRecord initAudioRecord() throws Exception {
-        AudioRecord record = null;
+    private AudioRecord initAudioRecord()
+            throws UnsupportedOperationException, IllegalStateException {
         mSampleRate = findRecordingSampleRate();
-        if (mSampleRate > 0) {
-            int buffer_size_bytes = mSampleRate * mRecordTimeS * 2;
-            mBufferSizeSamples = buffer_size_bytes / 2;
-            record = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                    mSampleRate, AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT, buffer_size_bytes);
-            int state = record.getState();
-            if (state != AudioRecord.STATE_INITIALIZED) {
-                record.release();
-                throw new Exception(String.format(
-                        "Error initialising audio recorder. State: %d", state));
-            }
+        int buffer_size_bytes = mSampleRate * mRecordTimeS * 2;
+        mBufferSizeSamples = buffer_size_bytes / 2;
+        AudioRecord record = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                mSampleRate, AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, buffer_size_bytes);
+        if (record.getState() != AudioRecord.STATE_INITIALIZED) {
+            record.release();
+            throw new IllegalStateException("Error initialising audio recorder");
         }
         return record;
     }
 
     /**
-     * Get a supported sample rate for Android's AudioRecord.
-     * @return Valid sampling rate, or -1 if none found.
+     * Get a supported sampling rate for Android's AudioRecord.
+     *
+     * @return Supported sampling rate in hertz
+     * @throws UnsupportedOperationException if no supported sampling rates
      */
-    private int findRecordingSampleRate() {
+    private int findRecordingSampleRate() throws UnsupportedOperationException {
         for (int rate : new int[] {22050, 16000, 11025, 8000}) {
             int bufferSize = AudioRecord.getMinBufferSize(rate,
                     AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
             if (bufferSize > 0)
                 return rate;
         }
-        return -1;
+        throw new UnsupportedOperationException("Unsupported audio hardware");
     }
 }
