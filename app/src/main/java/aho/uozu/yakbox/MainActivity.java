@@ -1,7 +1,6 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
-import android.content.Context;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -141,9 +140,6 @@ public class MainActivity extends Activity {
         }
         catch (Exception e) {
             releaseAudioResources();
-            // TODO: read logcat here for audio problems.
-            //       Looks like reading the log is not allowed since android 4.1
-            //       Any way around this...?
             ACRA.getErrorReporter().handleException(e, true);
         }
 

@@ -46,12 +46,21 @@ public class AudioRecorder {
         return mAudioRecord.read(buf.mBuffer, 0, mBufferSizeSamples);
     }
 
+    /**
+     * Releases internal resources. Must be called when you are finished
+     * with this object, otherwise other applications will be blocked from
+     * using audio resources.
+     *
+     * Subsequent calls on the same object have no effect.
+     */
     public void release() {
-        if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-            mAudioRecord.stop();
+        if (mAudioRecord != null) {
+            if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                mAudioRecord.stop();
+            }
+            mAudioRecord.release();
+            mAudioRecord = null;
         }
-        mAudioRecord.release();
-        mAudioRecord = null;
     }
 
     /**
@@ -96,6 +105,7 @@ public class AudioRecorder {
      * @return Initialised AudioRecord object.
      * @throws UnsupportedOperationException if audio hardware is unsupported
      * @throws IllegalStateException if audio recorder could not be initialised
+     * @throws IllegalArgumentException if initialisation parameters are bad
      */
     private AudioRecord initAudioRecord()
             throws UnsupportedOperationException, IllegalStateException {

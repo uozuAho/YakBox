@@ -8,6 +8,13 @@ import org.acra.annotation.*;
 @ReportsCrashes(
         mailTo = "uozu.aho@gmail.com",
         mode = ReportingInteractionMode.DIALOG,
+        customReportContent = {
+                ReportField.ANDROID_VERSION,
+                ReportField.APP_VERSION_NAME,
+                ReportField.BRAND,
+                ReportField.PHONE_MODEL,
+                ReportField.STACK_TRACE
+        },
 
         // dialog text
         resDialogTitle = R.string.acra_dialog_title,
