@@ -8,3 +8,7 @@ and reverse, at various speeds.
 - Recording & rotating device can sometimes cause crash, then can't
   reopen app until after reboot (can't init audio record).
     + Sometimes this happens even without rotating the device
+
+# Todo
+- update or remove appcompat dependency
+- add 'about' screen
