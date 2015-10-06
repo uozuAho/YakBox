@@ -134,7 +134,12 @@ public class MainActivity extends Activity {
             mRecorder.setOnBufferFullListener(new AudioRecorder.OnBufferFullListener() {
                 @Override
                 public void onBufferFull() {
-                    mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+                        }
+                    });
                 }
             });
         }
@@ -190,6 +195,7 @@ public class MainActivity extends Activity {
     private void stopRecording() {
         if (mIsRecording) {
             Log.d(TAG, "recording STOP");
+            // set 'say' button back to grey
             mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
             mRecorder.stopRecording();
 

@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 
 public class AudioBuffer {
     // audio mBuffer - short for 16 bit PCM
+    // TODO: these fields should be private :(
     public short[] mBuffer;
     public int mNumSamples;
 
