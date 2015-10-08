@@ -10,7 +10,7 @@ import android.util.Log;
 public class AudioRecorder {
     private int mSampleRate;
     private int mBufferSizeSamples;
-    private AudioBuffer2 mAudioBuffer;
+    private AudioBuffer mAudioBuffer;
     private AudioRecord mAudioRecord;
     private OnBufferFullListener mBufListener;
     private boolean mIsRecording;
@@ -23,30 +23,27 @@ public class AudioRecorder {
     // ---------------------------------------------------------------------
     // data types, interfaces
 
-    /** Buffer for storing audio */
-    private class AudioBuffer2 {
-        public short[] buffer;
-        public int idx;
-
-        public AudioBuffer2(int capacity) {
-            buffer = new short[capacity];
-            idx = 0;
-        }
-
-        /** Number of samples remaining */
-        public int remaining() { return buffer.length - idx; }
-    }
-
     /** Reads bytes from mAudioRecord into mAudioBuffer */
     private class AudioReader implements Runnable {
         @Override
         public void run() {
             while (mIsRecording) {
-                int bytesToRead = Math.min(READ_CHUNK_SIZE_SAMPLES, mAudioBuffer.remaining());
-                mAudioBuffer.idx +=
-                        mAudioRecord.read(mAudioBuffer.buffer, mAudioBuffer.idx, bytesToRead);
-                // if buffer full, stop recording and call the buffer full listener
-                if (bytesToRead < READ_CHUNK_SIZE_SAMPLES) {
+                int samplesToRead = Math.min(READ_CHUNK_SIZE_SAMPLES, mAudioBuffer.remaining());
+                int result =
+                        mAudioRecord.read(mAudioBuffer.getBuffer(), mAudioBuffer.getIdx(), samplesToRead);
+                if (result >= 0) {
+                    mAudioBuffer.incrementIdx(result);
+                }
+                else {
+                    // stop recording if any problems reading from AudioRecord
+                    mIsRecording = false;
+                    // also call onBufferFull(). Could rename this to onRecordingStopped().
+                    mBufListener.onBufferFull();
+                }
+
+                // if buffer is (or is nearly) full, stop recording
+                // and call the buffer full listener
+                if (mAudioBuffer.isFull() || samplesToRead < READ_CHUNK_SIZE_SAMPLES) {
                     mIsRecording = false;
                     mBufListener.onBufferFull();
                 }
@@ -76,12 +73,12 @@ public class AudioRecorder {
     public AudioRecorder(int record_time_s)
             throws UnsupportedOperationException, IllegalStateException {
         mAudioRecord = initAudioRecord(record_time_s);
-        mAudioBuffer = new AudioBuffer2(mBufferSizeSamples);
+        mAudioBuffer = new AudioBuffer(mBufferSizeSamples);
         Log.d(TAG, "AudioRecorder initialised. Sample rate: " + mSampleRate);
     }
 
     public void startRecording() {
-        mAudioBuffer.idx = 0;
+        mAudioBuffer.resetIdx();
         mAudioRecord.startRecording();
         mIsRecording = true;
         Thread t = new Thread(new AudioReader());
@@ -93,12 +90,19 @@ public class AudioRecorder {
         mIsRecording = false;
     }
 
-    /** Reads internally stored audio into the given buffer. */
+    /** Reads internally stored audio into the given buffer.
+     *
+     *  @return number of samples read
+     */
     public int read(AudioBuffer buf) {
-        if (BuildConfig.DEBUG && buf.mBuffer.length != mBufferSizeSamples)
+        if (BuildConfig.DEBUG && buf.capacity() < mBufferSizeSamples)
             throw new AssertionError();
-        System.arraycopy(mAudioBuffer.buffer, 0, buf.mBuffer, 0, mAudioBuffer.idx);
-        return mAudioBuffer.idx;
+        // copy to dst buffer
+        System.arraycopy(mAudioBuffer.getBuffer(), 0, buf.getBuffer(), buf.getIdx(),
+                mAudioBuffer.getIdx());
+        // increment dst buffer index by number of samples in this buffer
+        buf.incrementIdx(mAudioBuffer.getIdx());
+        return mAudioBuffer.getIdx();
     }
 
     /**

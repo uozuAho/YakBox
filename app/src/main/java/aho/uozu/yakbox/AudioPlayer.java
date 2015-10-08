@@ -44,19 +44,19 @@ public class AudioPlayer {
         if (rate < PLAYBACK_RATE_MIN || rate > PLAYBACK_RATE_MAX) {
             throw new IllegalArgumentException("playback rate out of bounds");
         }
-        if (buf.mNumSamples > 0) {
+        if (buf.getIdx() > 0) {
             if (mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
                 mAudioTrack.stop();
             }
             // Clear mAudioTrack's internal buffer
             // so the end of the last clip is not played.
-            if (buf.mNumSamples < mLastClipLengthSamples) {
+            if (buf.getIdx() < mLastClipLengthSamples) {
                 flush();
             }
-            mLastClipLengthSamples = buf.mNumSamples;
+            mLastClipLengthSamples = buf.getIdx();
             int rate_hz = getPlaybackSamplingRate(rate);
             Log.d(TAG, String.format("Playing sample at %d hz", rate_hz));
-            mAudioTrack.write(buf.mBuffer, 0, buf.mNumSamples);
+            mAudioTrack.write(buf.getBuffer(), 0, buf.getIdx());
             mAudioTrack.reloadStaticData();
             mAudioTrack.setPlaybackRate(rate_hz);
             mAudioTrack.play();

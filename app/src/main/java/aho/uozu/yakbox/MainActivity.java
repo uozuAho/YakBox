@@ -186,6 +186,7 @@ public class MainActivity extends Activity {
         long interval = SystemClock.elapsedRealtime() - mLastRecordEndMillis;
         if (!mIsRecording && interval > RECORD_WAIT_MS) {
             Log.d(TAG, "recording START");
+            mBuffer.resetIdx();
             mRecorder.startRecording();
             mBtnSay.setBackgroundResource(R.drawable.round_button_red);
             mIsRecording = true;
@@ -199,9 +200,9 @@ public class MainActivity extends Activity {
             mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
             mRecorder.stopRecording();
 
-            // move recording from recorder to audio mBuffer
-            mBuffer.mNumSamples = mRecorder.read(mBuffer);
-            Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
+            // move recording from recorder to audio buffer
+            int numSamples = mRecorder.read(mBuffer);
+            Log.d(TAG, String.format("%d samples copied to buffer", numSamples));
 
             mLastRecordEndMillis = SystemClock.elapsedRealtime();
             mIsRecording = false;
