@@ -138,7 +138,6 @@ public class MainActivity extends Activity {
             mRecorder = new AudioRecorder(MAX_RECORD_TIME_S);
             mPlayer = new AudioPlayer(mRecorder.getSampleRate(),
                     mRecorder.getBufferSizeSamples());
-            mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
 
             // set 'say' button back to grey if record buffer is full
             mRecorder.setOnBufferFullListener(new AudioRecorder.OnBufferFullListener() {
@@ -157,12 +156,14 @@ public class MainActivity extends Activity {
         }
 
         // init audio buffer
-        if (mBuffer != null) {
+        if (mBuffer == null) {
+            mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
+            // load temporary file
             try {
                 File f = new File(getFilesDir(), BUFFER_FILENAME);
                 mBuffer.loadFromFile(f);
             } catch (FileNotFoundException e) {
-                // do nothing - it's OK if there's no existing sound file
+                // no temporary file - no problem
             } catch (IOException e) {
                 Log.e(TAG, "Error loading saved buffer", e);
             }
