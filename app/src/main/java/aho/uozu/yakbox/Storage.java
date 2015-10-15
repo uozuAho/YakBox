@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import wav.WaveFile;
@@ -25,6 +26,7 @@ class Storage {
         for (int i = 0; i < waveFiles.size(); i++) {
             names[i] = fileToRecordingName(waveFiles.get(i));
         }
+        Arrays.sort(names);
         return names;
     }
 

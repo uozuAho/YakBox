@@ -11,10 +11,10 @@ and reverse, at various speeds.
 
 # Todo
 ## save/load
-- make item text smaller in load dialog
+- delete recordings
+- filter by input on load recording
 - show keyboard on save dialog
-- ability to delete recordings
-    + might need a dedicated load view, hold to mark/delete item
+- show similar filenames in save dialog
 - all other todos relating to save/load/delete
 
 ## Unscheduled
