@@ -74,6 +74,20 @@ class AudioBuffer {
             mIdx = mBuffer.length;
     }
 
+    /**
+     * Write the data in buf to this buffer.
+     *
+     * Buffer overflows are silently ignored - use getIdx() or isFull().
+     *
+     * @param buf Buffer to copy data from.
+     * @param len Number of shorts to write.
+     */
+    public void write(short[] buf, int len) {
+        int writeLen = Math.min(remaining(), len);
+        System.arraycopy(buf, 0, mBuffer, mIdx, writeLen);
+        mIdx += writeLen;
+    }
+
     /** Reset read/write index to zero */
     public void resetIdx() {
         mIdx = 0;

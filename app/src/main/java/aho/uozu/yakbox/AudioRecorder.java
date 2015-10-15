@@ -25,18 +25,21 @@ public class AudioRecorder {
 
     /** Reads bytes from mAudioRecord into mAudioBuffer */
     private class AudioReader implements Runnable {
+        private short[] readBuf = new short[READ_CHUNK_SIZE_SAMPLES];
         @Override
         public void run() {
             while (mIsRecording) {
                 int samplesToRead = Math.min(READ_CHUNK_SIZE_SAMPLES, mAudioBuffer.remaining());
-                int result =
-                        mAudioRecord.read(mAudioBuffer.getBuffer(), mAudioBuffer.getIdx(), samplesToRead);
+                // read to a temporary buffer, then write to audio buffer.
+                // This gets around a bug in Android 5.0's AudioRecord.read(short[]...)
+                // See https://code.google.com/p/android/issues/detail?id=81953
+                int result = mAudioRecord.read(readBuf, 0, samplesToRead);
                 if (result >= 0) {
-                    mAudioBuffer.incrementIdx(result);
+                    mAudioBuffer.write(readBuf, result);
                 }
                 else {
                     // stop recording if any problems reading from AudioRecord
-                    mIsRecording = false;
+                    stopRecording();
                     // also call onBufferFull(). Could rename this to onRecordingStopped().
                     mBufListener.onBufferFull();
                 }
@@ -44,7 +47,7 @@ public class AudioRecorder {
                 // if buffer is (or is nearly) full, stop recording
                 // and call the buffer full listener
                 if (mAudioBuffer.isFull() || samplesToRead < READ_CHUNK_SIZE_SAMPLES) {
-                    mIsRecording = false;
+                    stopRecording();
                     mBufListener.onBufferFull();
                 }
             }
