@@ -3,17 +3,19 @@
     package="aho.uozu.yakbox" >
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-                     android:maxSdkVersion="18">
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" >
         Uses external storage to load recordings.
     </uses-permission>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-                     android:maxSdkVersion="18">
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" >
         Uses external storage to save recordings.
     </uses-permission>
 
     <application
-        android:name="App"
+        android:name=".App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -21,7 +23,7 @@
 
         <!-- main activity -->
         <activity
-            android:name="aho.uozu.yakbox.MainActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,14 +32,26 @@
             </intent-filter>
         </activity>
 
-        <!-- ACRA -->
-        <activity android:name="org.acra.CrashReportDialog"
-            android:theme="@style/Theme.Dialog"
-            android:process=":error_report"
-            android:launchMode="singleInstance"
-            android:excludeFromRecents="true"
-            android:finishOnTaskLaunch="true">
+        <!-- Load activity -->
+        <activity
+            android:name=".LoadActivity"
+            android:label="@string/title_activity_load"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="aho.uozu.yakbox.MainActivity" />
         </activity>
+
+        <!-- ACRA -->
+        <activity
+            android:name="org.acra.CrashReportDialog"
+            android:excludeFromRecents="true"
+            android:finishOnTaskLaunch="true"
+            android:launchMode="singleInstance"
+            android:process=":error_report"
+            android:theme="@style/Theme.Dialog" >
+        </activity>
+
     </application>
 
 </manifest>

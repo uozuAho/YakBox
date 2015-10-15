@@ -3,9 +3,9 @@ package aho.uozu.yakbox;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -25,8 +24,6 @@ import org.acra.ACRA;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import wav.WaveFile;
 
@@ -58,6 +55,8 @@ public class MainActivity extends Activity {
     private static final double PLAYBACK_SPEED_MIN = 0.333;
     private static final double PLAYBACK_SPEED_MAX = 3.0;
     private static final double LOW_VOLUME = 0.33;
+
+    private static final int LOAD_RECORDING_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -286,136 +285,69 @@ public class MainActivity extends Activity {
     }
 
     private void saveRecording(String name) {
-        if (!isExternalStorageReadWriteable()) {
-            String msg = "Can't access storage!";
+        // TODO: confirm overwrite
+        // TODO: show existing files that match currently entered name
+        // TODO: save with current speed
+        WaveFile wav = new WaveFile.Builder()
+                .data(mBuffer.mBuffer)
+                .numFrames(mBuffer.mNumSamples)
+                .sampleRate(mRecorder.getSampleRate())
+                .bitDepth(16)
+                .channels(1)
+                .build();
+        String path = getExternalFilesDir(null) + "/" + name + ".wav";
+        Log.d(TAG, path);
+        try {
+            wav.writeToFile(path);
+            // Show saved toast to user
+            String msg = "Saved: " + name;
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }
-        else {
-            // TODO: confirm overwrite
-            // TODO: show existing files that match currently entered name
-            // TODO: save with current speed
-            WaveFile wav = new WaveFile.Builder()
-                    .data(mBuffer.mBuffer)
-                    .numFrames(mBuffer.mNumSamples)
-                    .sampleRate(mRecorder.getSampleRate())
-                    .bitDepth(16)
-                    .channels(1)
-                    .build();
-            String path = getExternalFilesDir(null) + "/" + name + ".wav";
-            Log.d(TAG, path);
-            try {
-                wav.writeToFile(path);
-                // Show saved toast to user
-                String msg = "Saved: " + name;
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            }
-            catch (IOException e) {
-                Log.e(TAG, "Error saving file", e);
-                String msg = "Error saving file!";
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            }
+        catch (IOException e) {
+            Log.e(TAG, "Error saving file", e);
+            String msg = "Error saving file!";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }
     }
 
-    private boolean isExternalStorageReadWriteable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
+    private void startLoadActivity() {
+        Intent i = new Intent(this, LoadActivity.class);
+        startActivityForResult(i, LOAD_RECORDING_REQUEST);
     }
 
-    private void showLoadDialog() {
-        if (!isExternalStorageReadWriteable()) {
-            String msg = "Can't access storage!";
-            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            return;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case LOAD_RECORDING_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    String name = data.getStringExtra("name");
+                    loadRecording(name);
+                }
+                break;
+            default:
+                Log.e(TAG, "Shouldn't get here!");
+                break;
         }
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        final View dialogView = inflater.inflate(R.layout.dialog_load, null);
-        final ArrayAdapter<String> filesList = new ArrayAdapter<>(this,
-                R.layout.dialog_load_item, getSavedRecordingNames());
-
-        builder
-                .setTitle(R.string.load_dialog_title)
-                .setView(dialogView)
-                .setAdapter(filesList, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String filename = filesList.getItem(which);
-                        loadRecording(filename);
-                    }
-                })
-                .setNegativeButton(R.string.load_dialog_negative,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                            }
-                        });
-        builder.show();
     }
 
     private void loadRecording(String name) {
-        File recording = recordingNameToFile(name);
-        if (recording != null) {
-            try {
-                WaveFile wav = WaveFile.fromFile(recording.toString());
-                wav.getAudioData(mBuffer.mBuffer);
-                mBuffer.mNumSamples = wav.getNumFrames();
-            } catch (IOException e) {
-                Log.e(TAG, "Error loading recording", e);
-                String msg = "Error loading file!";
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            }
+        try {
+            WaveFile wav = Storage.loadSavedRecording(this, name);
+            wav.getAudioData(mBuffer.mBuffer);
+            mBuffer.mNumSamples = wav.getNumFrames();
+
+            // TODO: Set speed slider according to sample rate?
+            // Show saved toast to user
+            String msg = "Loaded: " + name;
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "File not found", e);
+        } catch (IOException e) {
+            Log.e(TAG, "Error loading recording", e);
+            // TODO: this toast on every error?
+            String msg = "Error loading file!";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }
-
-        // TODO: Set speed slider according to sample rate?
-        // Show saved toast to user
-        String msg = "Loaded: " + name;
-        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-    }
-
-    /**
-     * Returns an array of paths to all wave files in this app's
-     * external storage directory.
-     */
-    private String[] getSavedRecordingNames() {
-        List<File> waveFiles = getAllWaveFiles();
-        String[] names = new String[waveFiles.size()];
-        for (int i = 0; i < waveFiles.size(); i++) {
-            names[i] = fileToRecordingName(waveFiles.get(i));
-        }
-        return names;
-    }
-
-    private List<File> getAllWaveFiles() {
-        List<File> waveFiles = new ArrayList<>();
-        if (isExternalStorageReadWriteable()) {
-            File dir = getExternalFilesDir(null);
-            if (dir != null) {
-                for (File f : dir.listFiles()) {
-                    if (f.toString().endsWith(".wav")) {
-                        waveFiles.add(f);
-                    }
-                }
-            }
-        }
-        return waveFiles;
-    }
-
-    private String fileToRecordingName(File file) {
-        String filename = file.getName();
-        return filename.substring(0, filename.length() - 4);
-    }
-
-    private File recordingNameToFile(String name) {
-        File file = null;
-        if (isExternalStorageReadWriteable()) {
-            File dir = getExternalFilesDir(null);
-            if (dir != null) {
-                String path = dir.toString() + "/" + name + ".wav";
-                file = new File(path);
-            }
-        }
-        return file;
     }
 
     @Override
@@ -466,7 +398,7 @@ public class MainActivity extends Activity {
                 showSaveDialog();
                 return true;
             case R.id.action_load:
-                showLoadDialog();
+                startLoadActivity();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
