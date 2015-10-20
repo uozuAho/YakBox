@@ -13,5 +13,4 @@ and reverse, at various speeds.
 - add tests
     + start record, rotate
     + start record, rotate, stop record
-- update or remove appcompat dependency
 - add 'about' screen
