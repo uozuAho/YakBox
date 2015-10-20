@@ -10,5 +10,8 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
+- add tests
+    + start record, rotate
+    + start record, rotate, stop record
 - update or remove appcompat dependency
 - add 'about' screen
