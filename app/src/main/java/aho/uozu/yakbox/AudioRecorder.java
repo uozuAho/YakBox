@@ -13,7 +13,7 @@ public class AudioRecorder {
     private AudioBuffer mAudioBuffer;
     private AudioRecord mAudioRecord;
     private OnBufferFullListener mBufListener;
-    private boolean mIsRecording;
+    private Thread mAudioReader;
 
     // ---------------------------------------------------------------------
     // constants
@@ -28,7 +28,7 @@ public class AudioRecorder {
         private short[] readBuf = new short[READ_CHUNK_SIZE_SAMPLES];
         @Override
         public void run() {
-            while (mIsRecording) {
+            while (isRecording() && !Thread.interrupted()) {
                 int samplesToRead = Math.min(READ_CHUNK_SIZE_SAMPLES, mAudioBuffer.remaining());
                 // read to a temporary buffer, then write to audio buffer.
                 // This gets around a bug in Android 5.0's AudioRecord.read(short[]...)
@@ -83,14 +83,18 @@ public class AudioRecorder {
     public void startRecording() {
         mAudioBuffer.resetIdx();
         mAudioRecord.startRecording();
-        mIsRecording = true;
-        Thread t = new Thread(new AudioReader());
-        t.start();
+        mAudioReader = new Thread(new AudioReader());
+        mAudioReader.start();
     }
 
+    /**
+     * Stops recording audio. Has no effect if not recording.
+     */
     public void stopRecording() {
-        mAudioRecord.stop();
-        mIsRecording = false;
+        if (isRecording()) {
+            mAudioRecord.stop();
+            mAudioReader.interrupt();
+        }
     }
 
     /** Reads internally stored audio into the given buffer.
@@ -117,9 +121,7 @@ public class AudioRecorder {
      */
     public void release() {
         if (mAudioRecord != null) {
-            if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-                mAudioRecord.stop();
-            }
+            stopRecording();
             mAudioRecord.release();
             mAudioRecord = null;
         }
@@ -180,5 +182,15 @@ public class AudioRecorder {
         throw new UnsupportedOperationException("Unsupported audio hardware");
     }
 
-
+    /**
+     * Returns true if mAudioRecord object exists and is recording, otherwise returns false.
+     */
+    private boolean isRecording() {
+        if (mAudioRecord != null) {
+            if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
