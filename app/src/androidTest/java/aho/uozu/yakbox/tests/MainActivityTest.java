@@ -6,8 +6,11 @@ import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Button;
+import android.widget.SeekBar;
 
 import com.robotium.solo.Solo;
+
+import java.util.Random;
 
 import aho.uozu.yakbox.MainActivity;
 import aho.uozu.yakbox.R;
@@ -19,6 +22,9 @@ public class MainActivityTest
     private MainActivity mMainActivity;
     private Instrumentation mInst;
     private Button mBtnSay;
+    private Button mBtnPlay;
+    private Button mBtnYalp;
+    private SeekBar mSkbSpeed;
     private int mOrientation;
 
     private static final String TAG = "MainActTest";
@@ -30,10 +36,18 @@ public class MainActivityTest
     @Override
     protected void setUp() throws Exception {
         solo = new Solo(getInstrumentation(), getActivity());
-        mMainActivity = getActivity();
         mInst = getInstrumentation();
-        mBtnSay = (Button) mMainActivity.findViewById(R.id.button_say);
         mOrientation = Solo.PORTRAIT;
+        initActivityAndButtonVars();
+    }
+
+    /** Set activity and button variables */
+    private void initActivityAndButtonVars() {
+        mMainActivity = getActivity();
+        mBtnSay = (Button) mMainActivity.findViewById(R.id.button_say);
+        mBtnPlay = (Button) mMainActivity.findViewById(R.id.button_play);
+        mBtnYalp = (Button) mMainActivity.findViewById(R.id.button_yalp);
+        mSkbSpeed = (SeekBar) mMainActivity.findViewById(R.id.skb_speed);
     }
 
     @Override
@@ -41,18 +55,55 @@ public class MainActivityTest
         solo.finishOpenedActivities();
     }
 
-    public void test1sRecordAndPlay() {
+    public void testRecordAndPlayLots() {
+        Random r = new Random();
+        // TODO:
+        // This test takes a while to run. Slow after stop recording.
+        // What's causing slowness? I commented out button background
+        // update, still took same time (but no skipped frame warning).
+        for (int i = 0; i < 5; i++) {
+            sendSayButtonEvent(MotionEvent.ACTION_DOWN);
+            solo.sleep(100 + r.nextInt(500));
+            sendSayButtonEvent(MotionEvent.ACTION_UP);
+            solo.sleep(100);
+            pressPlay();
+            solo.sleep(250 + r.nextInt(200));
+            pressYalp();
+        }
+        Log.d(TAG, "record to full buffer");
         sendSayButtonEvent(MotionEvent.ACTION_DOWN);
-        solo.sleep(1000);
+        solo.sleep(5000);
         sendSayButtonEvent(MotionEvent.ACTION_UP);
-        solo.sleep(100);
-        solo.clickOnText("Play");
-        solo.sleep(1000);
-        solo.clickOnText("yalP");
+        pressPlay();
+        solo.sleep(500);
+        pressYalp();
+    }
+
+    public void testManyPlaySpeeds() {
+        Random r = new Random();
+        int increment = mSkbSpeed.getMax() / 10;
+
+        // record something to play
+        sendSayButtonEvent(MotionEvent.ACTION_DOWN);
+        solo.sleep(500);
+        sendSayButtonEvent(MotionEvent.ACTION_UP);
+
+        for (int i = 0; i < mSkbSpeed.getMax(); i += increment) {
+            pressPlay();
+            solo.sleep(100 + r.nextInt(100));
+            pressYalp();
+            mSkbSpeed.setProgress(i);
+            solo.sleep(100 + r.nextInt(100));
+        }
+        // just in case max was missed
+        mSkbSpeed.setProgress(mSkbSpeed.getMax());
+        pressPlay();
+        solo.sleep(100 + r.nextInt(100));
+        pressYalp();
     }
 
     /**
-     * There was a bug once that caused crashes when recording
+     * There was a bug that caused crashes when recording
      * and rotating the screen. Hopefully this test will catch
      * it if comes back.
      */
@@ -62,6 +113,10 @@ public class MainActivityTest
             solo.sleep(100);
             toggleOrientation();
             solo.sleep(1000);
+            // refresh activity and button variables after
+            // configuration change
+            // TODO: this doesn't work - button coords are still incorrect
+            initActivityAndButtonVars();
             sendSayButtonEvent(MotionEvent.ACTION_UP);
             solo.sleep(500);
         }
@@ -85,5 +140,13 @@ public class MainActivityTest
             mOrientation = Solo.PORTRAIT;
         }
         solo.setActivityOrientation(mOrientation);
+    }
+
+    private void pressPlay() {
+        solo.clickOnView(mBtnPlay);
+    }
+
+    private void pressYalp() {
+        solo.clickOnView(mBtnYalp);
     }
 }
