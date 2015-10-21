@@ -1,7 +1,9 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -292,8 +294,8 @@ public class MainActivity extends Activity {
         // TODO: show existing files that match currently entered name
         // TODO: save with current speed
         WaveFile wav = new WaveFile.Builder()
-                .data(mBuffer.mBuffer)
-                .numFrames(mBuffer.mNumSamples)
+                .data(mBuffer.getBuffer())
+                .numFrames(mBuffer.getIdx())
                 .sampleRate(mRecorder.getSampleRate())
                 .bitDepth(16)
                 .channels(1)
@@ -336,8 +338,9 @@ public class MainActivity extends Activity {
     private void loadRecording(String name) {
         try {
             WaveFile wav = Storage.loadSavedRecording(this, name);
-            wav.getAudioData(mBuffer.mBuffer);
-            mBuffer.mNumSamples = wav.getNumFrames();
+            wav.getAudioData(mBuffer.getBuffer());
+            mBuffer.resetIdx();
+            mBuffer.incrementIdx(wav.getNumFrames());
 
             // TODO: Set speed slider according to sample rate?
             // Show saved toast to user
