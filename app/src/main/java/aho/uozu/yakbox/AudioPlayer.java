@@ -18,11 +18,14 @@ public class AudioPlayer {
 
     /**
      * Initialise a new AudioPlayer
+     *
      * @param sample_rate Audio sample rate in Hertz
      * @param buffer_size Audio buffer size in samples
-     * @throws Exception If audio system initialisation fails.
+     * @throws IllegalArgumentException if initialisation parameters are bad
+     * @throws IllegalStateException If audio system initialisation fails.
      */
-    public AudioPlayer(int sample_rate, int buffer_size) throws Exception {
+    public AudioPlayer(int sample_rate, int buffer_size)
+            throws IllegalArgumentException, IllegalStateException {
         this.mSampleRate = sample_rate;
         this.mBufferSizeSamples = buffer_size;
         // assume 16 bit samples
@@ -41,19 +44,19 @@ public class AudioPlayer {
         if (rate < PLAYBACK_RATE_MIN || rate > PLAYBACK_RATE_MAX) {
             throw new IllegalArgumentException("playback rate out of bounds");
         }
-        if (buf.mNumSamples > 0) {
+        if (buf.getIdx() > 0) {
             if (mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
                 mAudioTrack.stop();
             }
             // Clear mAudioTrack's internal buffer
             // so the end of the last clip is not played.
-            if (buf.mNumSamples < mLastClipLengthSamples) {
+            if (buf.getIdx() < mLastClipLengthSamples) {
                 flush();
             }
-            mLastClipLengthSamples = buf.mNumSamples;
+            mLastClipLengthSamples = buf.getIdx();
             int rate_hz = getPlaybackSamplingRate(rate);
             Log.d(TAG, String.format("Playing sample at %d hz", rate_hz));
-            mAudioTrack.write(buf.mBuffer, 0, buf.mNumSamples);
+            mAudioTrack.write(buf.getBuffer(), 0, buf.getIdx());
             mAudioTrack.reloadStaticData();
             mAudioTrack.setPlaybackRate(rate_hz);
             mAudioTrack.play();
@@ -83,15 +86,20 @@ public class AudioPlayer {
         return (int) (mSampleRate * rate);
     }
 
-    private AudioTrack initAudioTrack() throws Exception {
+    /**
+     * Initialise audio track
+     *
+     * @return initialised AudioTrack
+     * @throws IllegalArgumentException if initialisation parameters are bad
+     * @throws IllegalStateException if failed to initialise
+     */
+    private AudioTrack initAudioTrack() throws IllegalStateException {
         AudioTrack track = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate,
                 AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                 mBufferSizeBytes, AudioTrack.MODE_STATIC);
-        int state = track.getState();
-        if (state == AudioTrack.STATE_UNINITIALIZED) {
+        if (track.getState() == AudioTrack.STATE_UNINITIALIZED) {
             track.release();
-            throw new Exception(String.format(
-                    "Failed to initialise AudioTrack. State: %d", state));
+            throw new IllegalStateException("Failed to initialise AudioTrack");
         }
         return track;
     }

@@ -1,9 +1,7 @@
 package aho.uozu.yakbox;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.content.Context;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -143,15 +141,17 @@ public class MainActivity extends Activity {
             mRecorder.setOnBufferFullListener(new AudioRecorder.OnBufferFullListener() {
                 @Override
                 public void onBufferFull() {
-                    mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
+                        }
+                    });
                 }
             });
         }
         catch (Exception e) {
             releaseAudioResources();
-            // TODO: read logcat here for audio problems.
-            //       Looks like reading the log is not allowed since android 4.1
-            //       Any way around this...?
             ACRA.getErrorReporter().handleException(e, true);
         }
 
@@ -195,6 +195,7 @@ public class MainActivity extends Activity {
         long interval = SystemClock.elapsedRealtime() - mLastRecordEndMillis;
         if (!mIsRecording && interval > RECORD_WAIT_MS) {
             Log.d(TAG, "recording START");
+            mBuffer.resetIdx();
             mRecorder.startRecording();
             mBtnSay.setBackgroundResource(R.drawable.round_button_red);
             mIsRecording = true;
@@ -204,12 +205,13 @@ public class MainActivity extends Activity {
     private void stopRecording() {
         if (mIsRecording) {
             Log.d(TAG, "recording STOP");
+            // set 'say' button back to grey
             mBtnSay.setBackgroundResource(R.drawable.round_button_grey);
             mRecorder.stopRecording();
 
-            // move recording from recorder to audio mBuffer
-            mBuffer.mNumSamples = mRecorder.read(mBuffer);
-            Log.d(TAG, String.format("%d samples copied to buffer", mBuffer.mNumSamples));
+            // move recording from recorder to audio buffer
+            int numSamples = mRecorder.read(mBuffer);
+            Log.d(TAG, String.format("%d samples copied to buffer", numSamples));
 
             mLastRecordEndMillis = SystemClock.elapsedRealtime();
             mIsRecording = false;

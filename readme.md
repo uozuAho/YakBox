@@ -18,8 +18,10 @@ and reverse, at various speeds.
 - all other todos relating to save/load/delete
 
 ## Unscheduled
+- add 'about' screen
 - options / settings
     + think of some options...colour scheme?
+    + normalise recordings
 - add user guide
     + written & graphical format (overlay info on GUI)
 - refactor
