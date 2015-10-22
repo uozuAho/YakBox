@@ -11,7 +11,6 @@ and reverse, at various speeds.
 
 # Todo
 ## save/load
-- show keyboard on save dialog
 - overwrite warning on save
 - filter by input on load recording
 - show similar filenames in save dialog

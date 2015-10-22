@@ -36,9 +36,6 @@ public class LoadActivity extends ListActivity {
 
         ListView lv = getListView();
 
-        // Enable filtering when the user types in the virtual keyboard
-        lv.setTextFilterEnabled(true);
-
         // short taps
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
