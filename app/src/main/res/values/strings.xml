@@ -22,6 +22,7 @@
     <string name="save_dialog_title">Save</string>
     <string name="save_dialog_positive">Save</string>
     <string name="save_dialog_negative">Cancel</string>
+    <string name="save_confirm_overwrite_message">File exists. Overwrite</string>
 
     <!-- ACRA strings -->
     <string name="acra_dialog_title">Oops!</string>

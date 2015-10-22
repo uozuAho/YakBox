@@ -11,10 +11,6 @@ and reverse, at various speeds.
 
 # Todo
 ## save/load
-- overwrite warning on save
-- filter by input on load recording
-- show similar filenames in save dialog
-- all other todos relating to save/load/delete
 - fix layout - doesn't look good in landscape on my phone
 - load/save as icons
 - delete multiple recordings

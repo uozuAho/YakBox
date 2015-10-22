@@ -265,12 +265,13 @@ public class MainActivity extends Activity {
         return ((double) mSkbSpeed.getProgress()) / mSkbSpeed.getMax();
     }
 
-    private void showSaveDialog() {
+    private void showSaveDialog(String name) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         final View dialogView = inflater.inflate(R.layout.dialog_save, null);
         final TextView filenameTextView =
                 (EditText) dialogView.findViewById(R.id.save_filename);
+        filenameTextView.setText(name);
 
         builder
             .setTitle(R.string.save_dialog_title)
@@ -279,7 +280,7 @@ public class MainActivity extends Activity {
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
-                            saveRecording(filenameTextView.getText().toString());
+                            saveWithOverwriteCheck(filenameTextView.getText().toString());
                         }
                     })
             .setNegativeButton(R.string.save_dialog_negative,
@@ -293,10 +294,37 @@ public class MainActivity extends Activity {
         dialog.show();
     }
 
+    private void saveWithOverwriteCheck(String name) {
+        if (Storage.exists(this, name)) {
+            showConfirmOverwriteDialog(name);
+        }
+        else {
+            saveRecording(name);
+        }
+    }
+
+    private void showConfirmOverwriteDialog(final String name) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder
+                .setMessage(getString(R.string.save_confirm_overwrite_message)
+                        + " " + name + "?")
+                .setPositiveButton(R.string.save_dialog_positive,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                saveRecording(name);
+                            }
+                        })
+                .setNegativeButton(R.string.save_dialog_negative,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                showSaveDialog(name);
+                            }
+                        });
+        builder.show();
+    }
+
     private void saveRecording(String name) {
-        // TODO: confirm overwrite
-        // TODO: show existing files that match currently entered name
-        // TODO: save with current speed
         WaveFile wav = new WaveFile.Builder()
                 .data(mBuffer.getBuffer())
                 .numFrames(mBuffer.getIdx())
@@ -346,7 +374,6 @@ public class MainActivity extends Activity {
             mBuffer.resetIdx();
             mBuffer.incrementIdx(wav.getNumFrames());
 
-            // TODO: Set speed slider according to sample rate?
             // Show saved toast to user
             String msg = "Loaded: " + name;
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
@@ -405,7 +432,7 @@ public class MainActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_save:
-                showSaveDialog();
+                showSaveDialog("");
                 return true;
             case R.id.action_load:
                 startLoadActivity();

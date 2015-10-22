@@ -46,6 +46,14 @@ class Storage {
         }
     }
 
+    /** Returns true if the given recording name exists */
+    public static boolean exists(Context context, String name) {
+        List<String> recordings = getSavedRecordingNames(context);
+        if (recordings.contains(name))
+            return true;
+        return false;
+    }
+
     private static List<File> getAllWaveFiles(Context context) {
         List<File> waveFiles = new ArrayList<>();
         if (isExternalStorageReadWriteable()) {
