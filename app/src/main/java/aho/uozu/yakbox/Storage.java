@@ -2,17 +2,19 @@ package aho.uozu.yakbox;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import wav.WaveFile;
 
 class Storage {
+
+    private static final String TAG = "Yakbox-Storage";
 
     private Storage() {}
 
@@ -20,13 +22,12 @@ class Storage {
      * Returns an array of paths to all wave files in this app's
      * external storage directory.
      */
-    public static String[] getSavedRecordingNames(Context context) {
+    public static List<String> getSavedRecordingNames(Context context) {
         List<File> waveFiles = getAllWaveFiles(context);
-        String[] names = new String[waveFiles.size()];
+        List<String> names = new ArrayList<>(waveFiles.size());
         for (int i = 0; i < waveFiles.size(); i++) {
-            names[i] = fileToRecordingName(waveFiles.get(i));
+            names.add(fileToRecordingName(waveFiles.get(i)));
         }
-        Arrays.sort(names);
         return names;
     }
 
@@ -34,6 +35,15 @@ class Storage {
             throws IOException {
         File f = recordingNameToFile(context, name);
         return WaveFile.fromFile(f.getPath());
+    }
+
+    /** Delete the specified recording */
+    public static void deleteRecording(Context context, String name)
+            throws FileNotFoundException {
+        File f = recordingNameToFile(context, name);
+        if (!f.delete()) {
+            Log.e(TAG, name + " not deleted");
+        }
     }
 
     private static List<File> getAllWaveFiles(Context context) {
@@ -69,9 +79,9 @@ class Storage {
             if (dir != null) {
                 String path = dir.toString() + "/" + name + ".wav";
                 file = new File(path);
+                if (!file.exists()) throw new FileNotFoundException();
             }
         }
-        if (!file.exists()) throw new FileNotFoundException();
         return file;
     }
 }
