@@ -42,6 +42,16 @@
                 android:value="aho.uozu.yakbox.MainActivity" />
         </activity>
 
+        <!-- About/help screen -->
+        <activity
+            android:name=".AboutHelpActivity"
+            android:label="@string/about_title"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="aho.uozu.yakbox.MainActivity" />
+        </activity>
+
         <!-- ACRA -->
         <activity
             android:name="org.acra.CrashReportDialog"

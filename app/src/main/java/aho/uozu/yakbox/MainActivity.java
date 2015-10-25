@@ -352,6 +352,11 @@ public class MainActivity extends Activity {
         startActivityForResult(i, LOAD_RECORDING_REQUEST);
     }
 
+    private void startHelpActivity() {
+        Intent i = new Intent(this, AboutHelpActivity.class);
+        startActivity(i);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -436,6 +441,9 @@ public class MainActivity extends Activity {
                 return true;
             case R.id.action_load:
                 startLoadActivity();
+                return true;
+            case R.id.action_about:
+                startHelpActivity();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

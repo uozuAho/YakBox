@@ -4,10 +4,14 @@
         android:id="@+id/action_save"
         android:title="@string/action_save"
         android:orderInCategory="100"
-        android:showAsAction="always" />
+        android:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_load"
         android:title="@string/action_load"
         android:orderInCategory="101"
-        android:showAsAction="always" />
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/action_about"
+        android:orderInCategory="102" />
 </menu>

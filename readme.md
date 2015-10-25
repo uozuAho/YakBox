@@ -12,15 +12,14 @@ and reverse, at various speeds.
 # Todo
 ## save/load
 - fix layout - doesn't look good in landscape on my phone
-- load/save as icons
-- delete multiple recordings
+    + action bar too
+- load/save as icons?
+- tests
 
 ## Unscheduled
-- add 'about' screen
 - options / settings
     + think of some options...colour scheme?
     + normalise recordings
-- add user guide
-    + written & graphical format (overlay info on GUI)
 - refactor
     + MainActivity's getting big
+- delete multiple recordings
