@@ -22,4 +22,5 @@ and reverse, at various speeds.
     + normalise recordings
 - refactor
     + MainActivity's getting big
+- send / receive yaks
 - delete multiple recordings

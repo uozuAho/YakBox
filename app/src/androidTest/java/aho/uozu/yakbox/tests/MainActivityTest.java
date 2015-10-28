@@ -6,10 +6,10 @@ import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Button;
-import android.widget.SeekBar;
 
 import com.robotium.solo.Solo;
 
+import java.io.File;
 import java.util.Random;
 
 import aho.uozu.yakbox.MainActivity;
@@ -19,12 +19,7 @@ public class MainActivityTest
         extends ActivityInstrumentationTestCase2<MainActivity> {
 
     private Solo solo;
-    private MainActivity mMainActivity;
     private Instrumentation mInst;
-    private Button mBtnSay;
-    private Button mBtnPlay;
-    private Button mBtnYalp;
-    private SeekBar mSkbSpeed;
     private int mOrientation;
 
     private static final String TAG = "MainActTest";
@@ -38,16 +33,6 @@ public class MainActivityTest
         solo = new Solo(getInstrumentation(), getActivity());
         mInst = getInstrumentation();
         mOrientation = Solo.PORTRAIT;
-        initActivityAndButtonVars();
-    }
-
-    /** Set activity and button variables */
-    private void initActivityAndButtonVars() {
-        mMainActivity = getActivity();
-        mBtnSay = (Button) mMainActivity.findViewById(R.id.button_say);
-        mBtnPlay = (Button) mMainActivity.findViewById(R.id.button_play);
-        mBtnYalp = (Button) mMainActivity.findViewById(R.id.button_yalp);
-        mSkbSpeed = (SeekBar) mMainActivity.findViewById(R.id.skb_speed);
     }
 
     @Override
@@ -80,26 +65,18 @@ public class MainActivityTest
     }
 
     public void testManyPlaySpeeds() {
-        Random r = new Random();
-        int increment = mSkbSpeed.getMax() / 10;
-
         // record something to play
         sendSayButtonEvent(MotionEvent.ACTION_DOWN);
         solo.sleep(500);
         sendSayButtonEvent(MotionEvent.ACTION_UP);
 
-        for (int i = 0; i < mSkbSpeed.getMax(); i += increment) {
+        for (int percent = 0; percent < 100; percent += 10) {
+            solo.setProgressBar(0, percent);
             pressPlay();
-            solo.sleep(100 + r.nextInt(100));
+            solo.sleep(100);
             pressYalp();
-            mSkbSpeed.setProgress(i);
-            solo.sleep(100 + r.nextInt(100));
+            solo.sleep(100);
         }
-        // just in case max was missed
-        mSkbSpeed.setProgress(mSkbSpeed.getMax());
-        pressPlay();
-        solo.sleep(100 + r.nextInt(100));
-        pressYalp();
     }
 
     /**
@@ -113,23 +90,32 @@ public class MainActivityTest
             solo.sleep(100);
             toggleOrientation();
             solo.sleep(1000);
-            // refresh activity and button variables after
-            // configuration change
-            // TODO: this doesn't work - button coords are still incorrect
-            initActivityAndButtonVars();
             sendSayButtonEvent(MotionEvent.ACTION_UP);
             solo.sleep(500);
         }
     }
 
+    public void testSaveAndLoad() {
+        deleteAllSavedFiles();
+        solo.clickOnActionBarItem(R.id.action_save);
+        solo.enterText(0, "asdf");
+        solo.clickOnView(solo.getButton("Save"));
+        // check that overwrite warning appears
+        solo.clickOnActionBarItem(R.id.action_save);
+        solo.enterText(0, "asdf");
+        solo.clickOnView(solo.getButton("Save"));
+        String overwriteText = getActivity()
+                .getString(R.string.save_confirm_overwrite_message);
+        assertTrue(solo.searchText(overwriteText));
+        solo.clickOnText("Cancel");
+    }
+
     private void sendSayButtonEvent(int event) {
-        // say button coords. Add a bit since clicking on the
-        // returned coordinates doesn't actually trigger
-        // the touch listener.
-        float x = mBtnSay.getX() + 100;
-        float y = mBtnSay.getY() + 100;
+        int[] xy = new int[2];
+        Button sayButton = solo.getButton("Say");
+        sayButton.getLocationOnScreen(xy);
         long t = SystemClock.uptimeMillis();
-        MotionEvent e = MotionEvent.obtain(t, t, event, x, y, 0);
+        MotionEvent e = MotionEvent.obtain(t, t, event, xy[0], xy[1], 0);
         mInst.sendPointerSync(e);
     }
 
@@ -142,11 +128,22 @@ public class MainActivityTest
         solo.setActivityOrientation(mOrientation);
     }
 
+    private void deleteAllSavedFiles() {
+        File dir = getActivity().getExternalFilesDir(null);
+        if (dir != null) {
+            for (File f : dir.listFiles()) {
+                if (f.toString().endsWith(".wav")) {
+                    f.delete();
+                }
+            }
+        }
+    }
+
     private void pressPlay() {
-        solo.clickOnView(mBtnPlay);
+        solo.clickOnText("Play");
     }
 
     private void pressYalp() {
-        solo.clickOnView(mBtnYalp);
+        solo.clickOnText("yalP");
     }
 }
