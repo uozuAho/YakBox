@@ -113,6 +113,7 @@ public class MainActivityTest
         solo.clickOnText("Cancel");
         // check that entered text is retained
         assertTrue(solo.searchText(TEST_FILENAME));
+        solo.clickOnText("Cancel");
 
         // check that saved item appears in load screen
         solo.clickOnActionBarItem(R.id.action_load);
