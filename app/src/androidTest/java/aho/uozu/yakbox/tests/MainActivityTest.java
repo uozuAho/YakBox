@@ -96,18 +96,30 @@ public class MainActivityTest
     }
 
     public void testSaveAndLoad() {
+        final String TEST_FILENAME = "asdf";
+
         deleteAllSavedFiles();
         solo.clickOnActionBarItem(R.id.action_save);
-        solo.enterText(0, "asdf");
+        solo.enterText(0, TEST_FILENAME);
         solo.clickOnView(solo.getButton("Save"));
+
         // check that overwrite warning appears
         solo.clickOnActionBarItem(R.id.action_save);
-        solo.enterText(0, "asdf");
+        solo.enterText(0, TEST_FILENAME);
         solo.clickOnView(solo.getButton("Save"));
         String overwriteText = getActivity()
                 .getString(R.string.save_confirm_overwrite_message);
         assertTrue(solo.searchText(overwriteText));
         solo.clickOnText("Cancel");
+        // check that entered text is retained
+        assertTrue(solo.searchText(TEST_FILENAME));
+
+        // check that saved item appears in load screen
+        solo.clickOnActionBarItem(R.id.action_load);
+        assertTrue(solo.searchText(TEST_FILENAME));
+
+        // click on saved item then exit
+        solo.clickOnText(TEST_FILENAME);
     }
 
     private void sendSayButtonEvent(int event) {

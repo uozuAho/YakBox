@@ -5,15 +5,12 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.widget.TextView;
 
-import aho.uozu.yakbox.R;
-
 public class AboutHelpActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about_help);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
 
         TextView versionTxt = (TextView) findViewById(R.id.txt_version);
         try {

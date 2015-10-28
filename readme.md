@@ -10,13 +10,6 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
-## save/load
-- fix layout - doesn't look good in landscape on my phone
-    + action bar too
-- load/save as icons?
-- tests
-
-## Unscheduled
 - options / settings
     + think of some options...colour scheme?
     + normalise recordings
@@ -24,3 +17,4 @@ and reverse, at various speeds.
     + MainActivity's getting big
 - send / receive yaks
 - delete multiple recordings
+- load/save as icons?
