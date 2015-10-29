@@ -44,16 +44,11 @@ class Storage {
 
     public void loadRecordingToBuffer(AudioBuffer buffer, String name)
             throws IOException {
-        WaveFile wav = loadSavedRecording(name);
+        File f = recordingNameToFile(name);
+        WaveFile wav = WaveFile.fromFile(f.getPath());
         wav.getAudioData(buffer.getBuffer());
         buffer.resetIdx();
         buffer.incrementIdx(wav.getNumFrames());
-    }
-
-    public WaveFile loadSavedRecording(String name)
-            throws IOException {
-        File f = recordingNameToFile(name);
-        return WaveFile.fromFile(f.getPath());
     }
 
     /** Delete the specified recording */

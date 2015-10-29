@@ -148,7 +148,9 @@ public class MainActivityTest
         if (dir != null) {
             for (File f : dir.listFiles()) {
                 if (f.toString().endsWith(".wav")) {
-                    f.delete();
+                    if (!f.delete()) {
+                        Log.e(TAG, "couldn't delete " + f.toString());
+                    }
                 }
             }
         }

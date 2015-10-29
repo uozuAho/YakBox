@@ -6,8 +6,8 @@ import java.util.Map;
 enum Format {
     PCM(1);
 
-    private int code;
-    private static Map<Integer, Format> intToEnum = new HashMap<>();
+    private final int code;
+    private static final Map<Integer, Format> intToEnum = new HashMap<>();
 
     static {
         for (Format f : values()) {
@@ -23,7 +23,7 @@ enum Format {
         return code;
     }
 
-    public static Format fromInt (int formatCode) {
+    private static Format fromInt(int formatCode) {
         return intToEnum.get(formatCode);
     }
 

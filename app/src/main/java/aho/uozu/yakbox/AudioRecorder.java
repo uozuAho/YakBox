@@ -25,7 +25,7 @@ public class AudioRecorder {
 
     /** Reads bytes from mAudioRecord into mAudioBuffer */
     private class AudioReader implements Runnable {
-        private short[] readBuf = new short[READ_CHUNK_SIZE_SAMPLES];
+        private final short[] readBuf = new short[READ_CHUNK_SIZE_SAMPLES];
         @Override
         public void run() {
             while (isRecording() && !Thread.interrupted()) {

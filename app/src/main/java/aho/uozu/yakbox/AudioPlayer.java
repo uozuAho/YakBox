@@ -5,10 +5,10 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
 
-public class AudioPlayer {
-    private int mSampleRate;
-    private int mBufferSizeSamples;
-    private int mBufferSizeBytes;
+class AudioPlayer {
+    private final int mSampleRate;
+    private final int mBufferSizeSamples;
+    private final int mBufferSizeBytes;
     private int mLastClipLengthSamples;
     private AudioTrack mAudioTrack;
 

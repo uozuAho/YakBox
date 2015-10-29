@@ -13,8 +13,6 @@ and reverse, at various speeds.
 - options / settings
     + think of some options...colour scheme?
     + normalise recordings
-- refactor
-    + MainActivity's getting big
 - send / receive yaks
 - delete multiple recordings
 - load/save as icons?

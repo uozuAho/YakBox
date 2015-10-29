@@ -13,7 +13,7 @@ import java.io.ObjectOutputStream;
 class AudioBuffer {
 
     /** audio sample storage */
-    private short[] mBuffer;
+    private final short[] mBuffer;
 
     /** current read/write idx */
     private int mIdx;

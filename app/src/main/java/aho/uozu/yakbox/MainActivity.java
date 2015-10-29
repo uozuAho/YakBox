@@ -180,7 +180,6 @@ public class MainActivity extends Activity {
 
         // make volume buttons adjust music stream
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
         lowVolumeWarningIfNecessary();
     }
 

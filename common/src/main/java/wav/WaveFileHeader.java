@@ -103,10 +103,6 @@ class WaveFileHeader {
         return buffer;
     }
 
-    public Format getFormat() {
-        return format;
-    }
-
     public int getNumChannels() {
         return numChannels;
     }
