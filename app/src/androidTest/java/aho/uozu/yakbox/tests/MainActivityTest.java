@@ -119,8 +119,10 @@ public class MainActivityTest
         solo.clickOnActionBarItem(R.id.action_load);
         assertTrue(solo.searchText(TEST_FILENAME));
 
-        // click on saved item then exit
-        solo.clickOnText(TEST_FILENAME);
+        // delete recording
+        solo.clickLongOnText(TEST_FILENAME);
+        solo.clickOnView(solo.getButton("Delete"));
+        assertFalse(solo.searchText(TEST_FILENAME));
     }
 
     private void sendSayButtonEvent(int event) {

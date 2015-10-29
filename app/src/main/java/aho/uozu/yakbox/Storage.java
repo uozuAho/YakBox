@@ -12,19 +12,29 @@ import java.util.List;
 
 import wav.WaveFile;
 
-// TODO: make methods not static. It's a pain to have to pass context
 class Storage {
 
+    private static Storage instance;
+    private final Context context;
     private static final String TAG = "Yakbox-Storage";
 
-    private Storage() {}
+    private Storage(Context context) {
+        this.context = context;
+    }
+
+    public static Storage getInstance(Context context) {
+        if (instance == null) {
+            instance = new Storage(context);
+        }
+        return instance;
+    }
 
     /**
      * Returns an array of paths to all wave files in this app's
      * external storage directory.
      */
-    public static List<String> getSavedRecordingNames(Context context) {
-        List<File> waveFiles = getAllWaveFiles(context);
+    public List<String> getSavedRecordingNames() {
+        List<File> waveFiles = getAllWaveFiles();
         List<String> names = new ArrayList<>(waveFiles.size());
         for (int i = 0; i < waveFiles.size(); i++) {
             names.add(fileToRecordingName(waveFiles.get(i)));
@@ -32,38 +42,36 @@ class Storage {
         return names;
     }
 
-    public static void loadRecordingToBuffer(Context context, AudioBuffer buffer, String name)
+    public void loadRecordingToBuffer(AudioBuffer buffer, String name)
             throws IOException {
-        WaveFile wav = loadSavedRecording(context, name);
+        WaveFile wav = loadSavedRecording(name);
         wav.getAudioData(buffer.getBuffer());
         buffer.resetIdx();
         buffer.incrementIdx(wav.getNumFrames());
     }
 
-    public static WaveFile loadSavedRecording(Context context, String name)
+    public WaveFile loadSavedRecording(String name)
             throws IOException {
-        File f = recordingNameToFile(context, name);
+        File f = recordingNameToFile(name);
         return WaveFile.fromFile(f.getPath());
     }
 
     /** Delete the specified recording */
-    public static void deleteRecording(Context context, String name)
+    public void deleteRecording(String name)
             throws FileNotFoundException {
-        File f = recordingNameToFile(context, name);
+        File f = recordingNameToFile(name);
         if (!f.delete()) {
             Log.e(TAG, name + " not deleted");
         }
     }
 
     /** Returns true if the given recording name exists */
-    public static boolean exists(Context context, String name) {
-        List<String> recordings = getSavedRecordingNames(context);
-        if (recordings.contains(name))
-            return true;
-        return false;
+    public boolean exists(String name) {
+        List<String> recordings = getSavedRecordingNames();
+        return recordings.contains(name);
     }
 
-    private static List<File> getAllWaveFiles(Context context) {
+    private List<File> getAllWaveFiles() {
         List<File> waveFiles = new ArrayList<>();
         if (isExternalStorageReadWriteable()) {
             File dir = context.getExternalFilesDir(null);
@@ -78,17 +86,17 @@ class Storage {
         return waveFiles;
     }
 
-    private static boolean isExternalStorageReadWriteable() {
+    private boolean isExternalStorageReadWriteable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
 
-    private static String fileToRecordingName(File file) {
+    private String fileToRecordingName(File file) {
         String filename = file.getName();
         return filename.substring(0, filename.length() - 4);
     }
 
-    private static File recordingNameToFile(Context context, String name)
+    private File recordingNameToFile(String name)
             throws FileNotFoundException {
         File file = null;
         if (isExternalStorageReadWriteable()) {

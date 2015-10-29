@@ -20,13 +20,16 @@ public class LoadActivity extends ListActivity {
 
     private List<String> mItems;
     private ArrayAdapter<String> mAdapter;
+    private Storage mStorage;
+
     private static final String TAG = "Yakbox-Load";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mItems = Storage.getSavedRecordingNames(this);
+        mStorage = Storage.getInstance(this);
+        mItems = mStorage.getSavedRecordingNames();
         Collections.sort(mItems);
 
         // Create a new Adapter containing a list of colors
@@ -85,7 +88,7 @@ public class LoadActivity extends ListActivity {
         mItems.remove(itemIdx);
         mAdapter.notifyDataSetChanged();
         try {
-            Storage.deleteRecording(this, name);
+            mStorage.deleteRecording(name);
         }
         catch (IOException e) {
             Log.e(TAG, "Error deleting " + name, e);

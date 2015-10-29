@@ -41,6 +41,9 @@ public class MainActivity extends Activity {
     private AudioBuffer mBuffer = null;
     private AudioPlayer mPlayer = null;
 
+    // storage
+    private Storage mStorage;
+
     // recording delay data
     private long mLastRecordEndMillis = 0;
     private boolean mIsRecording = false;
@@ -63,6 +66,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mStorage = Storage.getInstance(this);
 
         // UI controls
         mBtnSay = (Button) findViewById(R.id.button_say);
@@ -295,7 +300,7 @@ public class MainActivity extends Activity {
     }
 
     private void saveWithOverwriteCheck(String name) {
-        if (Storage.exists(this, name)) {
+        if (mStorage.exists(name)) {
             showConfirmOverwriteDialog(name);
         }
         else {
@@ -374,7 +379,7 @@ public class MainActivity extends Activity {
 
     private void loadRecording(String name) {
         try {
-            Storage.loadRecordingToBuffer(this, mBuffer, name);
+            mStorage.loadRecordingToBuffer(mBuffer, name);
             // Show saved toast to user
             String msg = "Loaded: " + name;
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
