@@ -12,6 +12,7 @@ import java.util.List;
 
 import wav.WaveFile;
 
+// TODO: make methods not static. It's a pain to have to pass context
 class Storage {
 
     private static final String TAG = "Yakbox-Storage";
@@ -29,6 +30,14 @@ class Storage {
             names.add(fileToRecordingName(waveFiles.get(i)));
         }
         return names;
+    }
+
+    public static void loadRecordingToBuffer(Context context, AudioBuffer buffer, String name)
+            throws IOException {
+        WaveFile wav = loadSavedRecording(context, name);
+        wav.getAudioData(buffer.getBuffer());
+        buffer.resetIdx();
+        buffer.incrementIdx(wav.getNumFrames());
     }
 
     public static WaveFile loadSavedRecording(Context context, String name)

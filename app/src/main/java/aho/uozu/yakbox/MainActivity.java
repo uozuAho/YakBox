@@ -156,6 +156,7 @@ public class MainActivity extends Activity {
         catch (Exception e) {
             releaseAudioResources();
             ACRA.getErrorReporter().handleException(e, true);
+            // application ends here (true parameter)
         }
 
         // init audio buffer
@@ -182,7 +183,6 @@ public class MainActivity extends Activity {
      * Notify user if volume is lower than LOW_VOLUME
      */
     private void lowVolumeWarningIfNecessary() {
-        //getApplicationContext();
         AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
         int vol = am.getStreamVolume(AudioManager.STREAM_MUSIC);
         int max_vol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
@@ -374,19 +374,12 @@ public class MainActivity extends Activity {
 
     private void loadRecording(String name) {
         try {
-            WaveFile wav = Storage.loadSavedRecording(this, name);
-            wav.getAudioData(mBuffer.getBuffer());
-            mBuffer.resetIdx();
-            mBuffer.incrementIdx(wav.getNumFrames());
-
+            Storage.loadRecordingToBuffer(this, mBuffer, name);
             // Show saved toast to user
             String msg = "Loaded: " + name;
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-        } catch (FileNotFoundException e) {
-            Log.e(TAG, "File not found", e);
         } catch (IOException e) {
             Log.e(TAG, "Error loading recording", e);
-            // TODO: this toast on every error?
             String msg = "Error loading file!";
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }

@@ -75,7 +75,18 @@ public class AudioRecorder {
      */
     public AudioRecorder(int record_time_s)
             throws UnsupportedOperationException, IllegalStateException {
-        mAudioRecord = initAudioRecord(record_time_s);
+        try {
+            mAudioRecord = initAudioRecord(record_time_s);
+        } catch (IllegalStateException e) {
+            try {
+                // try waiting for resources to free up
+                Thread.sleep(50);
+                Log.d(TAG, "Retrying audio init");
+                mAudioRecord = initAudioRecord(record_time_s);
+            } catch (InterruptedException ie) {
+                throw new IllegalStateException("Interrupted during recorder init");
+            }
+        }
         mAudioBuffer = new AudioBuffer(mBufferSizeSamples);
         Log.d(TAG, "AudioRecorder initialised. Sample rate: " + mSampleRate);
     }
@@ -161,6 +172,9 @@ public class AudioRecorder {
                 AudioFormat.ENCODING_PCM_16BIT, buffer_size_bytes);
         if (record.getState() != AudioRecord.STATE_INITIALIZED) {
             record.release();
+            // Not sure if this is necessary, but I'm still getting
+            // audio init errors so I'm getting desperate.
+            record = null;
             throw new IllegalStateException("Error initialising audio recorder");
         }
         return record;
