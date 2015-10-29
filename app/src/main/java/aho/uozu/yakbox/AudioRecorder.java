@@ -7,7 +7,7 @@ import android.media.MediaRecorder;
 import android.util.Log;
 
 
-public class AudioRecorder {
+class AudioRecorder {
     private int mSampleRate;
     private int mBufferSizeSamples;
     private AudioBuffer mAudioBuffer;
