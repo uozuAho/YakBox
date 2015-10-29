@@ -6,8 +6,8 @@ android {
 
     defaultConfig {
         applicationId "aho.uozu.yakbox"
-        versionCode 6
-        versionName "1.5"
+        versionCode 7
+        versionName "2.0"
         minSdkVersion 15
         targetSdkVersion 23
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
