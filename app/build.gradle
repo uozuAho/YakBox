@@ -1,22 +1,25 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    // wait for ACRA 4.7 before updating compile version
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         applicationId "aho.uozu.yakbox"
         versionCode 7
         versionName "2.0"
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 22
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
     buildTypes {
         release {
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles (
+                    getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro')
         }
         debug {
             applicationIdSuffix ".debug"
