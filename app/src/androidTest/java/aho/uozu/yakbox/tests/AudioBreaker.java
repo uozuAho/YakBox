@@ -2,7 +2,6 @@ package aho.uozu.yakbox.tests;
 
 import android.os.SystemClock;
 import android.test.ActivityInstrumentationTestCase2;
-import android.util.Log;
 
 import java.util.Random;
 
@@ -50,9 +49,21 @@ public class AudioBreaker
 
     public void testRecordAndRead() {
         for (int i = 0; i < 100; i++) {
-            Log.d(TAG, "record");
             mAudioRecorder.startRecording();
-            randomSleep(10, 100);
+            randomSleep(5, 50);
+            mAudioRecorder.stopRecording();
+            mAudioBuffer.resetIdx();
+            mAudioRecorder.read(mAudioBuffer);
+        }
+    }
+
+    public void testCreateAndDestroy() {
+        for (int i = 0; i < 100; i++) {
+            mAudioRecorder.release();
+            mAudioRecorder = null;
+            mAudioRecorder = new AudioRecorder(MAX_RECORD_TIME_S);
+            mAudioRecorder.startRecording();
+            randomSleep(5, 50);
             mAudioRecorder.stopRecording();
             mAudioBuffer.resetIdx();
             mAudioRecorder.read(mAudioBuffer);
