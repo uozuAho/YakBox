@@ -1,4 +1,4 @@
-package wav;
+package aho.uozu.audio.wav;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

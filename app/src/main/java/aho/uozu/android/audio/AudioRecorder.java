@@ -1,10 +1,13 @@
-package aho.uozu.yakbox;
+package aho.uozu.android.audio;
 
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
+
+import aho.uozu.android.audio.AudioBuffer;
+import aho.uozu.yakbox.BuildConfig;
 
 
 public class AudioRecorder {

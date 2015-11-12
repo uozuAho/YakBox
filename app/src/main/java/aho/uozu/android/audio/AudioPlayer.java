@@ -1,11 +1,13 @@
-package aho.uozu.yakbox;
+package aho.uozu.android.audio;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
 
-class AudioPlayer {
+import aho.uozu.android.audio.AudioBuffer;
+
+public class AudioPlayer {
     private final int mSampleRate;
     private final int mBufferSizeSamples;
     private final int mBufferSizeBytes;

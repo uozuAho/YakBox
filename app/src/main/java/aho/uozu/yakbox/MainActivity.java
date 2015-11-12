@@ -26,7 +26,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import wav.WaveFile;
+import aho.uozu.android.audio.AudioBuffer;
+import aho.uozu.android.audio.AudioPlayer;
+import aho.uozu.android.audio.AudioRecorder;
+import aho.uozu.audio.wav.WaveFile;
 
 public class MainActivity extends Activity {
 

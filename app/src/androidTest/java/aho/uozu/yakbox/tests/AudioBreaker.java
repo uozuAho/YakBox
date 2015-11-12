@@ -5,8 +5,8 @@ import android.test.ActivityInstrumentationTestCase2;
 
 import java.util.Random;
 
-import aho.uozu.yakbox.AudioBuffer;
-import aho.uozu.yakbox.AudioRecorder;
+import aho.uozu.android.audio.AudioBuffer;
+import aho.uozu.android.audio.AudioRecorder;
 import aho.uozu.yakbox.LoadActivity;
 
 /**

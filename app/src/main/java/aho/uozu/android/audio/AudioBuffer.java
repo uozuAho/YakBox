@@ -1,4 +1,4 @@
-package aho.uozu.yakbox;
+package aho.uozu.android.audio;
 
 import java.io.File;
 import java.io.FileInputStream;

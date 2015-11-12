@@ -1,11 +1,11 @@
-package aho.uozu;
+package aho.uozu.audio.wav;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 
-import wav.WaveFile;
+import aho.uozu.audio.wav.WaveFile;
 
 public class WaveFileTests {
 

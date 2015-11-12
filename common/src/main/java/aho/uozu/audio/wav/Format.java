@@ -1,4 +1,4 @@
-package wav;
+package aho.uozu.audio.wav;
 
 import java.util.HashMap;
 import java.util.Map;
