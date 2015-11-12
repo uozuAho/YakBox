@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 /**
  * Single channel 16-bit audio sample buffer
  */
-class AudioBuffer {
+public class AudioBuffer {
 
     /** audio sample storage */
     private final short[] mBuffer;
