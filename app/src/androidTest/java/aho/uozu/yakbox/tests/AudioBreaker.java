@@ -48,12 +48,13 @@ public class AudioBreaker
         }
     }
 
-    public void testBreakIt() {
-        for (int i = 0; i < 10; i++) {
-            Log.d(TAG, "meh");
+    public void testRecordAndRead() {
+        for (int i = 0; i < 100; i++) {
+            Log.d(TAG, "record");
             mAudioRecorder.startRecording();
-            randomSleep(100, 200);
+            randomSleep(10, 100);
             mAudioRecorder.stopRecording();
+            mAudioBuffer.resetIdx();
             mAudioRecorder.read(mAudioBuffer);
         }
     }

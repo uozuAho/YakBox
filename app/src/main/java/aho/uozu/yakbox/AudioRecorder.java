@@ -41,14 +41,14 @@ public class AudioRecorder {
                     // stop recording if any problems reading from AudioRecord
                     stopRecording();
                     // also call onBufferFull(). Could rename this to onRecordingStopped().
-                    mBufListener.onBufferFull();
+                    onBufferFullCallback();
                 }
 
                 // if buffer is (or is nearly) full, stop recording
                 // and call the buffer full listener
                 if (mAudioBuffer.isFull() || samplesToRead < READ_CHUNK_SIZE_SAMPLES) {
                     stopRecording();
-                    mBufListener.onBufferFull();
+                    onBufferFullCallback();
                 }
             }
         }
@@ -206,5 +206,11 @@ public class AudioRecorder {
             }
         }
         return false;
+    }
+
+    private void onBufferFullCallback() {
+        if (mBufListener != null) {
+            mBufListener.onBufferFull();
+        }
     }
 }
