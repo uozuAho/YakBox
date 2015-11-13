@@ -2,6 +2,9 @@ package aho.uozu.android.audio;
 
 import android.util.Log;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import aho.uozu.yakbox.BuildConfig;
 
 
@@ -10,6 +13,7 @@ public class AudioRecorder {
     private AudioRecordThreadSafe mAudioRecord;
     private OnBufferFullListener mBufListener;
     private boolean mIsRecording;
+    private ExecutorService bgWorker;
 
     // ---------------------------------------------------------------------
     // constants
@@ -92,6 +96,7 @@ public class AudioRecorder {
             throws UnsupportedOperationException, IllegalStateException, InterruptedException {
         mAudioRecord = AudioRecordThreadSafe.getInstance(recordTimeS);
         mAudioBuffer = new AudioBuffer(mAudioRecord.getSamplingRate() * recordTimeS);
+        bgWorker = Executors.newSingleThreadExecutor();
     }
 
     public void startRecording() {
@@ -99,8 +104,7 @@ public class AudioRecorder {
         mAudioBuffer.resetIdx();
         try {
             mAudioRecord.startRecording();
-            Thread mAudioReader = new Thread(new AudioReader());
-            mAudioReader.start();
+            bgWorker.execute(new AudioReader());
             mIsRecording = true;
         } catch (InterruptedException | IllegalStateException e) {
             e.printStackTrace();
@@ -149,6 +153,7 @@ public class AudioRecorder {
      */
     public void release() {
         Log.d(TAG, "release");
+        bgWorker.shutdown();
         if (mAudioRecord != null) {
             stopRecording();
             try {
