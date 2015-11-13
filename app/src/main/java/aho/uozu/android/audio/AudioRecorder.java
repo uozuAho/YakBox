@@ -1,20 +1,15 @@
 package aho.uozu.android.audio;
 
 
-import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.MediaRecorder;
 import android.util.Log;
 
-import aho.uozu.android.audio.AudioBuffer;
 import aho.uozu.yakbox.BuildConfig;
 
 
 public class AudioRecorder {
-    private int mSampleRate;
-    private int mBufferSizeSamples;
     private AudioBuffer mAudioBuffer;
-    private AudioRecord mAudioRecord;
+    private AudioRecordThreadSafe mAudioRecord;
     private OnBufferFullListener mBufListener;
     private Thread mAudioReader;
 
@@ -36,11 +31,17 @@ public class AudioRecorder {
                 // read to a temporary buffer, then write to audio buffer.
                 // This gets around a bug in Android 5.0's AudioRecord.read(short[]...)
                 // See https://code.google.com/p/android/issues/detail?id=81953
-                int result = mAudioRecord.read(readBuf, 0, samplesToRead);
+                int result = 0;
+                try {
+                    result = mAudioRecord.read(readBuf, 0, samplesToRead);
+                } catch (InterruptedException e) {
+                    Log.d(TAG, "AudioReader interrupted");
+                }
                 if (result >= 0) {
                     mAudioBuffer.write(readBuf, result);
                 }
                 else {
+                    Log.e(TAG, "mAudioRecord.read error: " + result);
                     // stop recording if any problems reading from AudioRecord
                     stopRecording();
                     // also call onBufferFull(). Could rename this to onRecordingStopped().
@@ -72,51 +73,51 @@ public class AudioRecorder {
     /**
      * Initialise the audio recorder.
      *
-     * @param record_time_s Maximum recording length in seconds
+     * @param recordTimeS Maximum recording length in seconds
      * @throws UnsupportedOperationException if hardware not supported
      * @throws IllegalStateException if error initialising audio recorder
      */
-    public AudioRecorder(int record_time_s)
-            throws UnsupportedOperationException, IllegalStateException {
-        try {
-            mAudioRecord = initAudioRecord(record_time_s);
-        } catch (IllegalStateException e) {
-            try {
-                // try waiting for resources to free up
-                Thread.sleep(50);
-                Log.d(TAG, "Retrying audio init");
-                mAudioRecord = initAudioRecord(record_time_s);
-            } catch (InterruptedException ie) {
-                throw new IllegalStateException("Interrupted during recorder init");
-            }
-        }
-        mAudioBuffer = new AudioBuffer(mBufferSizeSamples);
-        Log.d(TAG, "AudioRecorder initialised. Sample rate: " + mSampleRate);
+    public AudioRecorder(int recordTimeS)
+            throws UnsupportedOperationException, IllegalStateException, InterruptedException {
+        mAudioRecord = AudioRecordThreadSafe.getInstance(recordTimeS);
+        mAudioBuffer = new AudioBuffer(mAudioRecord.getSamplingRate() * recordTimeS);
     }
 
     public void startRecording() {
+        Log.d(TAG, "startRecording");
         mAudioBuffer.resetIdx();
-        mAudioRecord.startRecording();
-        mAudioReader = new Thread(new AudioReader());
-        mAudioReader.start();
+        try {
+            mAudioRecord.startRecording();
+            mAudioReader = new Thread(new AudioReader());
+            mAudioReader.start();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Stops recording audio. Has no effect if not recording.
      */
     public void stopRecording() {
+        Log.d(TAG, "stopRecording");
         if (isRecording()) {
-            mAudioRecord.stop();
-            mAudioReader.interrupt();
+            try {
+                mAudioRecord.stop();
+                mAudioReader.interrupt();
+                mAudioReader.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    /** Reads internally stored audio into the given buffer.
-     *
+    /**
+     * Reads internally stored audio into the given buffer.
      *  @return number of samples read
      */
     public int read(AudioBuffer buf) {
-        if (BuildConfig.DEBUG && buf.capacity() < mBufferSizeSamples)
+        Log.d(TAG, "read");
+        if (BuildConfig.DEBUG && buf.capacity() < mAudioBuffer.capacity())
             throw new AssertionError();
         // copy to dst buffer
         System.arraycopy(mAudioBuffer.getBuffer(), 0, buf.getBuffer(), buf.getIdx(),
@@ -134,9 +135,14 @@ public class AudioRecorder {
      * Subsequent calls on the same object have no effect.
      */
     public void release() {
+        Log.d(TAG, "release");
         if (mAudioRecord != null) {
             stopRecording();
-            mAudioRecord.release();
+            try {
+                mAudioRecord.release();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             mAudioRecord = null;
         }
     }
@@ -150,53 +156,11 @@ public class AudioRecorder {
      * @return Sample rate in Hertz.
      */
     public int getSampleRate() {
-        return mSampleRate;
+        return mAudioRecord.getSamplingRate();
     }
 
     public int getBufferSizeSamples() {
-        return mBufferSizeSamples;
-    }
-
-    /**
-     * Initialise AudioRecord object.
-     *
-     * @return Initialised AudioRecord object.
-     * @throws UnsupportedOperationException if audio hardware is unsupported
-     * @throws IllegalStateException if audio recorder could not be initialised
-     * @throws IllegalArgumentException if initialisation parameters are bad
-     */
-    private AudioRecord initAudioRecord(int recordTimeS)
-            throws UnsupportedOperationException, IllegalStateException {
-        mSampleRate = findRecordingSampleRate();
-        int buffer_size_bytes = mSampleRate * recordTimeS * 2;
-        mBufferSizeSamples = buffer_size_bytes / 2;
-        AudioRecord record = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                mSampleRate, AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, buffer_size_bytes);
-        if (record.getState() != AudioRecord.STATE_INITIALIZED) {
-            record.release();
-            // Not sure if this is necessary, but I'm still getting
-            // audio init errors so I'm getting desperate.
-            record = null;
-            throw new IllegalStateException("Error initialising audio recorder");
-        }
-        return record;
-    }
-
-    /**
-     * Get a supported sampling rate for Android's AudioRecord.
-     *
-     * @return Supported sampling rate in hertz
-     * @throws UnsupportedOperationException if no supported sampling rates
-     */
-    private int findRecordingSampleRate() throws UnsupportedOperationException {
-        for (int rate : new int[] { 22050, 16000, 11025, 8000 }) {
-            int bufferSize = AudioRecord.getMinBufferSize(rate,
-                    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-            if (bufferSize > 0)
-                return rate;
-        }
-        throw new UnsupportedOperationException("Unsupported audio hardware");
+        return mAudioBuffer.capacity();
     }
 
     /**
@@ -204,8 +168,12 @@ public class AudioRecorder {
      */
     private boolean isRecording() {
         if (mAudioRecord != null) {
-            if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-                return true;
+            try {
+                if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                    return true;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
         return false;
