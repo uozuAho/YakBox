@@ -1,7 +1,5 @@
 package aho.uozu.android.audio;
 
-
-import android.media.AudioRecord;
 import android.util.Log;
 
 import aho.uozu.yakbox.BuildConfig;
@@ -11,7 +9,7 @@ public class AudioRecorder {
     private AudioBuffer mAudioBuffer;
     private AudioRecordThreadSafe mAudioRecord;
     private OnBufferFullListener mBufListener;
-    private Thread mAudioReader;
+    private boolean mIsRecording;
 
     // ---------------------------------------------------------------------
     // constants
@@ -26,6 +24,9 @@ public class AudioRecorder {
         private final short[] readBuf = new short[READ_CHUNK_SIZE_SAMPLES];
         @Override
         public void run() {
+
+            boolean callStop = false;
+
             while (isRecording() && !Thread.interrupted()) {
                 int samplesToRead = Math.min(READ_CHUNK_SIZE_SAMPLES, mAudioBuffer.remaining());
                 // read to a temporary buffer, then write to audio buffer.
@@ -43,7 +44,8 @@ public class AudioRecorder {
                 else {
                     Log.e(TAG, "mAudioRecord.read error: " + result);
                     // stop recording if any problems reading from AudioRecord
-                    stopRecording();
+                    mIsRecording = false;
+                    callStop = true;
                     // also call onBufferFull(). Could rename this to onRecordingStopped().
                     onBufferFullCallback();
                 }
@@ -51,10 +53,19 @@ public class AudioRecorder {
                 // if buffer is (or is nearly) full, stop recording
                 // and call the buffer full listener
                 if (mAudioBuffer.isFull() || samplesToRead < READ_CHUNK_SIZE_SAMPLES) {
-                    stopRecording();
+                    mIsRecording = false;
+                    callStop = true;
                     onBufferFullCallback();
                 }
             }
+            if (callStop) {
+                try {
+                    mAudioRecord.stop();
+                } catch (InterruptedException | IllegalStateException e) {
+                    e.printStackTrace();
+                }
+            }
+            Log.d(TAG, "AudioReader done");
         }
     }
 
@@ -88,9 +99,10 @@ public class AudioRecorder {
         mAudioBuffer.resetIdx();
         try {
             mAudioRecord.startRecording();
-            mAudioReader = new Thread(new AudioReader());
+            Thread mAudioReader = new Thread(new AudioReader());
             mAudioReader.start();
-        } catch (InterruptedException e) {
+            mIsRecording = true;
+        } catch (InterruptedException | IllegalStateException e) {
             e.printStackTrace();
         }
     }
@@ -101,11 +113,10 @@ public class AudioRecorder {
     public void stopRecording() {
         Log.d(TAG, "stopRecording");
         if (isRecording()) {
+            mIsRecording = false;
             try {
                 mAudioRecord.stop();
-                mAudioReader.interrupt();
-                mAudioReader.join();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | IllegalStateException e) {
                 e.printStackTrace();
             }
         }
@@ -131,6 +142,8 @@ public class AudioRecorder {
      * Releases internal resources. Must be called when you are finished
      * with this object, otherwise other applications will be blocked from
      * using audio resources.
+     *
+     * This object should no longer be used once release() has been called.
      *
      * Subsequent calls on the same object have no effect.
      */
@@ -164,19 +177,10 @@ public class AudioRecorder {
     }
 
     /**
-     * Returns true if mAudioRecord object exists and is recording, otherwise returns false.
+     * Returns true if we're currently recording audio.
      */
     private boolean isRecording() {
-        if (mAudioRecord != null) {
-            try {
-                if (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-                    return true;
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
+        return mIsRecording;
     }
 
     private void onBufferFullCallback() {
