@@ -32,7 +32,7 @@ class AudioRecordThreadSafe {
     private AudioRecord mAudioRecord;
 
     /** Guards access to the AudioRecord instance */
-    private Semaphore mAudioRecordSem;
+    private final Semaphore mAudioRecordSem;
 
     /** Private constructor to prevent accidental instantiation */
     private AudioRecordThreadSafe(int recordTimeS) throws InterruptedException {
@@ -67,6 +67,7 @@ class AudioRecordThreadSafe {
         mAudioRecordSem.release();
     }
 
+    @SuppressWarnings("unused")
     public int getRecordingState() throws InterruptedException {
         mAudioRecordSem.acquire();
         int state = mAudioRecord.getRecordingState();
@@ -93,7 +94,7 @@ class AudioRecordThreadSafe {
      * Attempt a number of times to initialise AudioRecord. Blocks until
      * initialised or an exception is thrown.
      *
-     * @param recordTimeS
+     * @param recordTimeS size of recording storage, in seconds
      * @throws UnsupportedOperationException
      * @throws IllegalStateException
      */
@@ -107,7 +108,7 @@ class AudioRecordThreadSafe {
         for (int i = 0; i < INIT_TRIES; i++) {
             try {
                 Log.d(TAG, "Attempting audio init");
-                mAudioRecord = initAudioRecord(recordTimeS);
+                mAudioRecord = initAudioRecord();
                 // if we get here, mAudioRecord was initialised, so stop further attempts
                 break;
             } catch (IllegalStateException e) {
@@ -133,7 +134,7 @@ class AudioRecordThreadSafe {
      * @throws IllegalStateException if audio recorder could not be initialised
      * @throws IllegalArgumentException if initialisation parameters are bad
      */
-    private AudioRecord initAudioRecord(int recordTimeS)
+    private AudioRecord initAudioRecord()
             throws UnsupportedOperationException, IllegalStateException {
         mSamplingRate = findRecordingSampleRate();
         int bufferSize = AudioRecord.getMinBufferSize(mSamplingRate,
@@ -145,6 +146,7 @@ class AudioRecordThreadSafe {
             record.release();
             // Not sure if this is necessary, but I'm still getting
             // audio init errors so I'm getting desperate.
+            //noinspection UnusedAssignment
             record = null;
             throw new IllegalStateException("Error initialising audio recorder");
         }
