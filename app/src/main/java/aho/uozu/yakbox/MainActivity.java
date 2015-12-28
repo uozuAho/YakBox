@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
     // constants
     private static final String TAG = "YakBox";
     private static final String BUFFER_FILENAME = "yakbox-sound.bin";
-    private static final int MAX_RECORD_TIME_S = 5;
+    private static final int MAX_RECORD_TIME_S = 20;
     // Delay between end of last recording and next recording
     private static final int RECORD_WAIT_MS = 300;
     private static final double PLAYBACK_SPEED_MIN = 0.333;

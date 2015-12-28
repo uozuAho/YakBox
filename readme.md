@@ -10,11 +10,9 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
-- longer recording time
 - share: email, facebook, twitter etc.
 - options / settings
-    + think of some options...colour scheme?
     + normalise recordings
-- send / receive yaks
+    + strip silence @ start & end
 - delete multiple recordings
 - load/save as icons?
