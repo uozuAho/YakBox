@@ -28,6 +28,7 @@
     <!-- About / help -->
     <string name="about_title">About</string>
     <string name="about_version_label">Version:</string>
+    <string name="about_storage_label">Data dir:</string>
     <string name="about_usage_general_label">Usage</string>
     <string name="about_usage_general">Hold \'say\' to record something. Press \'Play\' to play back,
     press \'yalP\' to play in reverse. Playback speed can be adjusted using the speed slider.</string>

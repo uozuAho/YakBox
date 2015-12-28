@@ -13,6 +13,9 @@ import java.util.List;
 import aho.uozu.android.audio.AudioBuffer;
 import aho.uozu.audio.wav.WaveFile;
 
+/**
+ * Handles saving / loading audio files
+ */
 class Storage {
 
     private static Storage instance;
@@ -67,10 +70,16 @@ class Storage {
         return recordings.contains(name);
     }
 
+    /** Returns the directory under which files are saved */
+    public File getStorageDir() {
+        return context.getExternalFilesDir(null);
+    }
+
+    /** Get all the wave files in the storage directory */
     private List<File> getAllWaveFiles() {
         List<File> waveFiles = new ArrayList<>();
         if (isExternalStorageReadWriteable()) {
-            File dir = context.getExternalFilesDir(null);
+            File dir = getStorageDir();
             if (dir != null) {
                 for (File f : dir.listFiles()) {
                     if (f.toString().endsWith(".wav")) {
@@ -96,7 +105,7 @@ class Storage {
             throws FileNotFoundException {
         File file = null;
         if (isExternalStorageReadWriteable()) {
-            File dir = context.getExternalFilesDir(null);
+            File dir = getStorageDir();
             if (dir != null) {
                 String path = dir.toString() + "/" + name + ".wav";
                 file = new File(path);

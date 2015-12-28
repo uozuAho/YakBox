@@ -10,9 +10,6 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
-- use executor service to run audio reader?
-- sync access to shared data
-- find storage location, put on 'about' page
 - longer recording time
 - share: email, facebook, twitter etc.
 - options / settings

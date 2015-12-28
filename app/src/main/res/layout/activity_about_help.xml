@@ -32,10 +32,32 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/about_storage_label"
+        android:id="@+id/lbl_storage_dir"
+        android:layout_below="@+id/lbl_version"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Small Text"
+        android:id="@+id/txt_storage_dir"
+        android:layout_toRightOf="@+id/lbl_storage_dir"
+        android:layout_below="@+id/txt_version"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:gravity="right" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="@string/about_usage_general_label"
         android:id="@+id/lbl_usage"
-        android:layout_below="@+id/lbl_version"
+        android:layout_below="@+id/lbl_storage_dir"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 

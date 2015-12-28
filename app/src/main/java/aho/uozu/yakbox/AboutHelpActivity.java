@@ -12,12 +12,17 @@ public class AboutHelpActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about_help);
 
+        // Set version text
         TextView versionTxt = (TextView) findViewById(R.id.txt_version);
+
         try {
             versionTxt.setText(getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+        // Set storage text
+        TextView storageTxt = (TextView) findViewById(R.id.txt_storage_dir);
+        storageTxt.setText(Storage.getInstance(this).getStorageDir().getAbsolutePath());
     }
 
 }
