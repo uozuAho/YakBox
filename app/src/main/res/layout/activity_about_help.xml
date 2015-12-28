@@ -110,4 +110,24 @@
         android:layout_below="@+id/lbl_load"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/about_usage_accessing_files_label"
+        android:id="@+id/lbl_accessing_files"
+        android:layout_below="@+id/txt_load"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/about_usage_accessing_files"
+        android:id="@+id/txt_accessing_files"
+        android:layout_below="@+id/lbl_accessing_files"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 </RelativeLayout>
