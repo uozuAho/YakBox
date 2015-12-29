@@ -10,7 +10,11 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
+## toolbar
 - follow http://developer.android.com/training/appbar/setting-up.html
+- menu icons
+- remove title from toolbar (invisible but still taking up room?)
+## other
 - share: email, facebook, twitter etc.
 - options / settings
     + normalise recordings
