@@ -12,7 +12,7 @@ and reverse, at various speeds.
 # Todo
 ## toolbar
 - follow http://developer.android.com/training/appbar/setting-up.html
-- menu icons
+- load icon
 - remove title from toolbar (invisible but still taking up room?)
 ## other
 - share: email, facebook, twitter etc.
