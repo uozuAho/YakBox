@@ -10,6 +10,7 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
+- follow http://developer.android.com/training/appbar/setting-up.html
 - share: email, facebook, twitter etc.
 - options / settings
     + normalise recordings

@@ -1,4 +1,4 @@
 <resources>
-    <style name="AppTheme" parent="@android:style/Theme.Holo" />
-    <style name="Theme.Dialog" parent="@android:style/Theme.Dialog" />
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="Theme.Dialog" parent="Theme.AppCompat.Dialog" />
 </resources>

@@ -2,10 +2,10 @@ package aho.uozu.yakbox;
 
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-public class AboutHelpActivity extends Activity {
+public class AboutHelpActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

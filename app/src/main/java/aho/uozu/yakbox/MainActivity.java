@@ -1,12 +1,12 @@
 package aho.uozu.yakbox;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,7 +31,7 @@ import aho.uozu.android.audio.AudioPlayer;
 import aho.uozu.android.audio.AudioRecorder;
 import aho.uozu.audio.wav.WaveFile;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     // UI elements
     private Button mBtnSay = null;
