@@ -4,9 +4,12 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -57,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
     // constants
     private static final String TAG = "YakBox";
     private static final String BUFFER_FILENAME = "yakbox-sound.bin";
+    /**
+     * Used for sharing
+     */
+    private static final String TEMP_WAV_FILENAME = "yakbox-sound.wav";
     private static final int MAX_RECORD_TIME_S = 20;
     // Delay between end of last recording and next recording
     private static final int RECORD_WAIT_MS = 300;
@@ -338,7 +345,33 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // TODO: move to storage
     private void saveRecording(String name) {
+        String path = getExternalFilesDir(null) + "/" + name + ".wav";
+        saveRecording(name, path);
+    }
+
+    // TODO: move to storage
+    private File getTempWav() {
+        // TODO: must be in public dir
+        return new File(getExternalFilesDir(null) + "/temp", TEMP_WAV_FILENAME);
+    }
+
+    // TODO: move to storage
+    private void saveTempWav() {
+        File tempWav = getTempWav();
+        File dir = new File(tempWav.getParent());
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        String name = tempWav.getName();
+        String path = tempWav.getAbsolutePath();
+        saveRecording(name, path);
+    }
+
+    // TODO: move to storage
+    private void saveRecording(String name, String path) {
+        // TODO: check path directory exists and is accessible
         WaveFile wav = new WaveFile.Builder()
                 .data(mBuffer.getBuffer())
                 .numFrames(mBuffer.getIdx())
@@ -346,8 +379,6 @@ public class MainActivity extends AppCompatActivity {
                 .bitDepth(16)
                 .channels(1)
                 .build();
-        String path = getExternalFilesDir(null) + "/" + name + ".wav";
-        Log.d(TAG, path);
         try {
             wav.writeToFile(path);
             // Show saved toast to user
@@ -404,6 +435,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         if (mBuffer != null) {
             try {
+                // TODO: move to storage
                 File f = new File(getFilesDir(), BUFFER_FILENAME);
                 mBuffer.saveToFile(f);
             } catch (IOException e) {
@@ -434,6 +466,16 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        // TODO: test if this breaks with empty wav
+        // update share content
+        saveTempWav();
+        MenuItem shareItem = menu.findItem(R.id.action_share);
+        ShareActionProvider myShareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        Intent myShareIntent = new Intent(Intent.ACTION_SEND);
+        myShareIntent.setType("audio/wav");
+        myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(getTempWav()));
+        myShareActionProvider.setShareIntent(myShareIntent);
         return true;
     }
 

@@ -8,8 +8,10 @@
     <string name="txt_speed">Speed</string>
     <string name="txt_1.0x">1.0x</string>
 
+    <!-- Menu items -->
     <string name="action_save">Save</string>
     <string name="action_load">Load</string>
+    <string name="action_share">Share</string>
     <string name="action_about">About</string>
     <string name="low_volume_warning">Turn volume up!</string>
 

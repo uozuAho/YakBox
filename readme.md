@@ -14,8 +14,13 @@ and reverse, at various speeds.
 - follow http://developer.android.com/training/appbar/setting-up.html
 - load icon
 - remove title from toolbar (invisible but still taking up room?)
-## other
+- load activity toolbar
+    + back
+    + search
+    + multi-select + delete
 - share: email, facebook, twitter etc.
+## other
+- file io on separate thread
 - options / settings
     + normalise recordings
     + strip silence @ start & end
