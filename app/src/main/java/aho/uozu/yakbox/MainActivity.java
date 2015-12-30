@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
 
     // constants
     private static final String TAG = "YakBox";
-    private static final String BUFFER_FILENAME = "yakbox-sound.bin";
     /**
      * Used for sharing
      */
@@ -184,15 +183,7 @@ public class MainActivity extends AppCompatActivity {
         // init audio buffer
         if (mBuffer == null) {
             mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
-            // load temporary file
-            try {
-                File f = new File(getFilesDir(), BUFFER_FILENAME);
-                mBuffer.loadFromFile(f);
-            } catch (FileNotFoundException e) {
-                // no temporary file - no problem
-            } catch (IOException e) {
-                Log.e(TAG, "Error loading saved buffer", e);
-            }
+            mStorage.loadBuffer(mBuffer);
         }
 
         // make volume buttons adjust music stream
@@ -369,7 +360,10 @@ public class MainActivity extends AppCompatActivity {
 
     private File saveTempWav()
             throws Storage.StorageUnavailableException, IOException {
-        return mStorage.saveTempRecording(mBuffer, TEMP_WAV_FILENAME, mRecorder.getSampleRate());
+        if (mBuffer != null && mRecorder != null) {
+            return mStorage.saveTempRecording(mBuffer, TEMP_WAV_FILENAME, mRecorder.getSampleRate());
+        }
+        return null;
     }
 
     private void startLoadActivity() {
@@ -414,13 +408,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         if (mBuffer != null) {
-            try {
-                // TODO: move to storage
-                File f = new File(getFilesDir(), BUFFER_FILENAME);
-                mBuffer.saveToFile(f);
-            } catch (IOException e) {
-                Log.e(TAG, "Error saving buffer to file", e);
-            }
+            mStorage.saveBuffer(mBuffer);
         }
         releaseAudioResources();
     }
@@ -449,13 +437,15 @@ public class MainActivity extends AppCompatActivity {
         try {
             // TODO: test if this breaks with empty wav
             File tempWav = saveTempWav();
-            MenuItem shareItem = menu.findItem(R.id.action_share);
-            ShareActionProvider myShareActionProvider =
-                    (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-            Intent myShareIntent = new Intent(Intent.ACTION_SEND);
-            myShareIntent.setType("audio/wav");
-            myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempWav));
-            myShareActionProvider.setShareIntent(myShareIntent);
+            if (tempWav != null) {
+                MenuItem shareItem = menu.findItem(R.id.action_share);
+                ShareActionProvider myShareActionProvider =
+                        (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+                Intent myShareIntent = new Intent(Intent.ACTION_SEND);
+                myShareIntent.setType("audio/wav");
+                myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempWav));
+                myShareActionProvider.setShareIntent(myShareIntent);
+            }
         }
         catch (Storage.StorageUnavailableException e) {
             String msg = "Error: Can't access storage";

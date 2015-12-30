@@ -19,6 +19,7 @@ import aho.uozu.audio.wav.WaveFile;
 class Storage {
 
     private static final String TAG = "Yakbox-Storage";
+    private static final String BUFFER_FILENAME = "yakbox-sound.bin";
     private static Storage instance;
     private final Context context;
 
@@ -103,6 +104,39 @@ class Storage {
                 .channels(1)
                 .build();
         wav.writeToFile(path);
+    }
+
+    /**
+     * Save buffer. Overwrites previous saves.
+     */
+    public void saveBuffer(AudioBuffer buffer) {
+        File f = getBufferTempFile();
+        try {
+            buffer.saveToFile(f);
+        } catch (IOException e) {
+            Log.e(TAG, "Error saving buffer to file", e);
+        }
+    }
+
+    /**
+     * Load the last saved buffer to the given buffer.
+     */
+    public void loadBuffer(AudioBuffer buffer) {
+        File f = getBufferTempFile();
+        if (f.exists()) {
+            try {
+                buffer.loadFromFile(f);
+            } catch (IOException e) {
+                Log.e(TAG, "Error loading saved buffer", e);
+            }
+        }
+    }
+
+    /**
+     * Get the file used to store audio buffer data
+     */
+    private File getBufferTempFile() {
+        return new File(context.getFilesDir(), BUFFER_FILENAME);
     }
 
     public void loadRecordingToBuffer(AudioBuffer buffer, String name)
