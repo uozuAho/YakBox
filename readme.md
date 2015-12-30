@@ -18,8 +18,13 @@ and reverse, at various speeds.
     + back
     + search
     + multi-select + delete
-- share: email, facebook, twitter etc.
+- pre-release: compare with current release
 ## other
+- share:
+    + facebook: https://developers.facebook.com/docs/sharing/android
+        * can't share audio files directly. Upload to soundcloud?
+    + twitter: same as fb
+- dark menus (currently white bg)
 - file io on separate thread
 - options / settings
     + normalise recordings

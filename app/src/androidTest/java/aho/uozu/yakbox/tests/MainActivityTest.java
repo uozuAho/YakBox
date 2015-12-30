@@ -5,6 +5,7 @@ import android.os.SystemClock;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 
 import com.robotium.solo.Solo;
@@ -99,12 +100,12 @@ public class MainActivityTest
         final String TEST_FILENAME = "asdf";
 
         deleteAllSavedFiles();
-        solo.clickOnActionBarItem(R.id.action_save);
+        clickToolbarSave();
         solo.enterText(0, TEST_FILENAME);
         solo.clickOnView(solo.getButton("Save"));
 
         // check that overwrite warning appears
-        solo.clickOnActionBarItem(R.id.action_save);
+        clickToolbarSave();
         solo.enterText(0, TEST_FILENAME);
         solo.clickOnView(solo.getButton("Save"));
         String overwriteText = getActivity()
@@ -116,13 +117,34 @@ public class MainActivityTest
         solo.clickOnText("Cancel");
 
         // check that saved item appears in load screen
-        solo.clickOnActionBarItem(R.id.action_load);
+        clickToolbarLoad();
         assertTrue(solo.searchText(TEST_FILENAME));
 
         // delete recording
         solo.clickLongOnText(TEST_FILENAME);
         solo.clickOnView(solo.getButton("Delete"));
         assertFalse(solo.searchText(TEST_FILENAME));
+    }
+
+    /**
+     * Click on the save toolbar icon/text (in main activity)
+     */
+    private void clickToolbarSave() {
+        View toolbar = solo.getView(R.id.toolbar);
+        View saveView = toolbar.findViewById(R.id.action_save);
+        if (saveView != null)
+            solo.clickOnView(saveView);
+        else
+            solo.clickOnMenuItem("Save");
+    }
+
+    private void clickToolbarLoad() {
+        View toolbar = solo.getView(R.id.toolbar);
+        View loadView = toolbar.findViewById(R.id.action_load);
+        if (loadView != null)
+            solo.clickOnView(loadView);
+        else
+        solo.clickOnMenuItem("Load");
     }
 
     private void sendSayButtonEvent(int event) {
