@@ -11,8 +11,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,11 +31,15 @@ public class LoadActivity extends ListActivity {
         super.onCreate(savedInstanceState);
 
         mStorage = Storage.getInstance(this);
-        mItems = mStorage.getSavedRecordingNames();
+        try {
+            mItems = mStorage.getSavedRecordingNames();
+        } catch (Storage.StorageUnavailableException e) {
+            String msg = "Error: Can't access storage";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            mItems = new ArrayList<>();
+        }
         Collections.sort(mItems);
 
-        // Create a new Adapter containing a list of colors
-        // Set the adapter on this ListActivity's built-in ListView
         mAdapter = new ArrayAdapter<>(this, R.layout.load_list_item, mItems);
         setListAdapter(mAdapter);
 

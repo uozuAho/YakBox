@@ -21,7 +21,11 @@ public class AboutHelpActivity extends AppCompatActivity {
         }
         // Set storage text
         TextView storageTxt = (TextView) findViewById(R.id.txt_storage_dir);
-        storageTxt.setText(Storage.getInstance(this).getStorageDir().getAbsolutePath());
+        try {
+            storageTxt.setText(Storage.getInstance(this).getStorageDir().getAbsolutePath());
+        } catch (Storage.StorageUnavailableException e) {
+            storageTxt.setText(getString(R.string.about_storage_inaccessible_error));
+        }
     }
 
 }

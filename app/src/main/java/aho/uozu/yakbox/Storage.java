@@ -18,9 +18,15 @@ import aho.uozu.audio.wav.WaveFile;
  */
 class Storage {
 
+    private static final String TAG = "Yakbox-Storage";
     private static Storage instance;
     private final Context context;
-    private static final String TAG = "Yakbox-Storage";
+
+    /**
+     * Used when errors regarding external media occur.
+     */
+    public static class StorageUnavailableException extends IOException {
+    }
 
     private Storage(Context context) {
         this.context = context;
@@ -34,16 +40,69 @@ class Storage {
     }
 
     /**
-     * Returns an array of paths to all wave files in this app's
-     * external storage directory.
+     * Returns all saved recordings.
      */
-    public List<String> getSavedRecordingNames() {
-        List<File> waveFiles = getAllWaveFiles();
+    public List<String> getSavedRecordingNames() throws StorageUnavailableException {
+        List<File> waveFiles = getAllSavedRecordings();
         List<String> names = new ArrayList<>(waveFiles.size());
         for (int i = 0; i < waveFiles.size(); i++) {
             names.add(fileToRecordingName(waveFiles.get(i)));
         }
         return names;
+    }
+
+    /**
+     * Save the given audio buffer to file.
+     *
+     * @param buffer buffer containing audio data
+     * @param name name to give the saved file
+     * @param samplingRate sampling rate of the audio
+     *
+     * @throws StorageUnavailableException if storage is unavailable
+     * @throws IOException if any other IO errors occur
+     */
+    public void saveRecording(AudioBuffer buffer, String name, int samplingRate)
+            throws StorageUnavailableException, IOException {
+        String path = recordingNameToPath(name);
+        saveRecordingToPath(buffer, path, samplingRate);
+    }
+
+    /**
+     * Save the given audio buffer to a temporary file. Temporary recordings
+     * are not returned by {@code #getSavedRecordingNames}.
+     *
+     * @param buffer buffer containing audio data
+     * @param name name to give the saved file
+     * @param samplingRate sampling rate of the audio
+     *
+     * @throws StorageUnavailableException if storage is unavailable
+     * @throws IOException if any other IO errors occur
+     *
+     * @return The saved file. Saved to a public directory, therefore is
+     * accessible by other apps.
+     */
+    public File saveTempRecording(AudioBuffer buffer, String name, int samplingRate)
+            throws StorageUnavailableException, IOException {
+        File dir = getTempStorageDir();
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        File f = new File(dir, name + ".wav");
+        saveRecordingToPath(buffer, f.getAbsolutePath(), samplingRate);
+        return f;
+        // TODO: delete these recordings at some point
+    }
+
+    private void saveRecordingToPath(AudioBuffer buffer, String path, int samplingRate)
+            throws IOException {
+        WaveFile wav = new WaveFile.Builder()
+                .data(buffer.getBuffer())
+                .numFrames(buffer.getIdx())
+                .sampleRate(samplingRate)
+                .bitDepth(16)
+                .channels(1)
+                .build();
+        wav.writeToFile(path);
     }
 
     public void loadRecordingToBuffer(AudioBuffer buffer, String name)
@@ -57,7 +116,7 @@ class Storage {
 
     /** Delete the specified recording */
     public void deleteRecording(String name)
-            throws FileNotFoundException {
+            throws FileNotFoundException, StorageUnavailableException {
         File f = recordingNameToFile(name);
         if (!f.delete()) {
             Log.e(TAG, name + " not deleted");
@@ -65,21 +124,42 @@ class Storage {
     }
 
     /** Returns true if the given recording name exists */
-    public boolean exists(String name) {
+    public boolean exists(String name) throws StorageUnavailableException {
         List<String> recordings = getSavedRecordingNames();
         return recordings.contains(name);
     }
 
-    /** Returns the directory under which files are saved */
-    public File getStorageDir() {
-        return context.getExternalFilesDir(null);
+    /** Returns the directory under which user's recordings are saved */
+    public File getStorageDir() throws StorageUnavailableException {
+        File dir = context.getExternalFilesDir(null);
+        if (dir == null) {
+            throw new StorageUnavailableException();
+        }
+        return dir;
+    }
+
+    /**
+     * Returns the directory for temp files. Files here aren't returned by
+     * {@code #getSavedRecordingNames}.
+     */
+    public File getTempStorageDir() throws StorageUnavailableException {
+        return new File(getStorageDir().toString() + "/temp");
+    }
+
+    /**
+     * Returns the directory for application-private files.
+     */
+    public File getPrivateStorageDir() {
+        return context.getFilesDir();
     }
 
     /** Get all the wave files in the storage directory */
-    private List<File> getAllWaveFiles() {
+    private List<File> getAllSavedRecordings() throws StorageUnavailableException {
         List<File> waveFiles = new ArrayList<>();
+        // TODO: this check is unnecessary
         if (isExternalStorageReadWriteable()) {
             File dir = getStorageDir();
+            // TODO: no need for null check here
             if (dir != null) {
                 for (File f : dir.listFiles()) {
                     if (f.toString().endsWith(".wav")) {
@@ -91,6 +171,9 @@ class Storage {
         return waveFiles;
     }
 
+    /**
+     * Returns true if external media is available and writeable.
+     */
     private boolean isExternalStorageReadWriteable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
@@ -101,15 +184,28 @@ class Storage {
         return filename.substring(0, filename.length() - 4);
     }
 
+    private String recordingNameToPath(String name) throws StorageUnavailableException {
+        File dir = getStorageDir();
+        return dir.toString() + "/" + name + ".wav";
+    }
+
+    /**
+     * Returns the saved recording with the given name.
+     *
+     * @throws aho.uozu.yakbox.Storage.StorageUnavailableException if storage is unavailable
+     * @throws FileNotFoundException if file doesn't exist.
+     */
     private File recordingNameToFile(String name)
-            throws FileNotFoundException {
+            throws FileNotFoundException, StorageUnavailableException {
         File file = null;
         if (isExternalStorageReadWriteable()) {
             File dir = getStorageDir();
             if (dir != null) {
                 String path = dir.toString() + "/" + name + ".wav";
                 file = new File(path);
-                if (!file.exists()) throw new FileNotFoundException();
+                if (!file.exists()) {
+                    throw new FileNotFoundException();
+                }
             }
         }
         return file;

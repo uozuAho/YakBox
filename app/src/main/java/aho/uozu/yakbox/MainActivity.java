@@ -316,11 +316,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveWithOverwriteCheck(String name) {
-        if (mStorage.exists(name)) {
-            showConfirmOverwriteDialog(name);
+        try {
+            if (mStorage.exists(name)) {
+                showConfirmOverwriteDialog(name);
+            } else {
+                saveRecording(name);
+            }
         }
-        else {
-            saveRecording(name);
+        catch (Storage.StorageUnavailableException e) {
+            String msg = "Error: Can't access storage";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -345,51 +350,26 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // TODO: move to storage
     private void saveRecording(String name) {
-        String path = getExternalFilesDir(null) + "/" + name + ".wav";
-        saveRecording(name, path);
-    }
-
-    // TODO: move to storage
-    private File getTempWav() {
-        // TODO: must be in public dir
-        return new File(getExternalFilesDir(null) + "/temp", TEMP_WAV_FILENAME);
-    }
-
-    // TODO: move to storage
-    private void saveTempWav() {
-        File tempWav = getTempWav();
-        File dir = new File(tempWav.getParent());
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-        String name = tempWav.getName();
-        String path = tempWav.getAbsolutePath();
-        saveRecording(name, path);
-    }
-
-    // TODO: move to storage
-    private void saveRecording(String name, String path) {
-        // TODO: check path directory exists and is accessible
-        WaveFile wav = new WaveFile.Builder()
-                .data(mBuffer.getBuffer())
-                .numFrames(mBuffer.getIdx())
-                .sampleRate(mRecorder.getSampleRate())
-                .bitDepth(16)
-                .channels(1)
-                .build();
         try {
-            wav.writeToFile(path);
-            // Show saved toast to user
+            mStorage.saveRecording(mBuffer, name, mRecorder.getSampleRate());
             String msg = "Saved: " + name;
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }
-        catch (IOException e) {
-            Log.e(TAG, "Error saving file", e);
-            String msg = "Error saving file!";
+        catch (Storage.StorageUnavailableException e) {
+            String msg = "Error: Can't access storage";
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         }
+        catch (IOException e) {
+            Log.e(TAG, "Error saving recording", e);
+            String msg = "Error saving file";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private File saveTempWav()
+            throws Storage.StorageUnavailableException, IOException {
+        return mStorage.saveTempRecording(mBuffer, TEMP_WAV_FILENAME, mRecorder.getSampleRate());
     }
 
     private void startLoadActivity() {
@@ -466,16 +446,26 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        // TODO: test if this breaks with empty wav
-        // update share content
-        saveTempWav();
-        MenuItem shareItem = menu.findItem(R.id.action_share);
-        ShareActionProvider myShareActionProvider =
-                (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-        Intent myShareIntent = new Intent(Intent.ACTION_SEND);
-        myShareIntent.setType("audio/wav");
-        myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(getTempWav()));
-        myShareActionProvider.setShareIntent(myShareIntent);
+        try {
+            // TODO: test if this breaks with empty wav
+            File tempWav = saveTempWav();
+            MenuItem shareItem = menu.findItem(R.id.action_share);
+            ShareActionProvider myShareActionProvider =
+                    (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+            Intent myShareIntent = new Intent(Intent.ACTION_SEND);
+            myShareIntent.setType("audio/wav");
+            myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempWav));
+            myShareActionProvider.setShareIntent(myShareIntent);
+        }
+        catch (Storage.StorageUnavailableException e) {
+            String msg = "Error: Can't access storage";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        }
+        catch (IOException e) {
+            Log.e(TAG, "Error saving recording", e);
+            String msg = "Error preparing yak for sharing";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        }
         return true;
     }
 
