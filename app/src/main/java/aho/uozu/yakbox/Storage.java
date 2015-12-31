@@ -90,7 +90,19 @@ class Storage {
         File f = new File(dir, name + ".wav");
         saveRecordingToPath(buffer, f.getAbsolutePath(), samplingRate);
         return f;
-        // TODO: delete these recordings at some point
+    }
+
+    /** Delete all recordings in the temporary directory */
+    public void deleteTempRecordings() {
+        try {
+            File dir = getTempStorageDir();
+            for (File f : getRecordings(dir)) {
+                f.delete();
+            }
+        }
+        catch (StorageUnavailableException e) {
+            Log.e(TAG, "Error deleting temp recordings", e);
+        }
     }
 
     private void saveRecordingToPath(AudioBuffer buffer, String path, int samplingRate)
@@ -179,10 +191,15 @@ class Storage {
         return new File(getStorageDir().toString() + "/temp");
     }
 
-    /** Get all the wave files in the storage directory */
+    /** Get all recordings saved by the user */
     private List<File> getAllSavedRecordings() throws StorageUnavailableException {
-        List<File> waveFiles = new ArrayList<>();
         File dir = getStorageDir();
+        return getRecordings(dir);
+    }
+
+    /** Get all recordings in the given directory */
+    private List<File> getRecordings(File dir) {
+        List<File> waveFiles = new ArrayList<>();
         for (File f : dir.listFiles()) {
             if (f.toString().endsWith(".wav")) {
                 waveFiles.add(f);
