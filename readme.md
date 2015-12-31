@@ -27,6 +27,7 @@ and reverse, at various speeds.
     + twitter: same as fb
 - centralise error toasts, put error messages in string resources
 - dark menus (currently white bg)
+- 'about' page is ugly
 - file io on separate thread
 - change to MVP architecture
 - options / settings

@@ -27,13 +27,11 @@ import android.widget.Toast;
 import org.acra.ACRA;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import aho.uozu.android.audio.AudioBuffer;
 import aho.uozu.android.audio.AudioPlayer;
 import aho.uozu.android.audio.AudioRecorder;
-import aho.uozu.audio.wav.WaveFile;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -435,7 +433,6 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         try {
-            // TODO: test if this breaks with empty wav
             File tempWav = saveTempWav();
             if (tempWav != null) {
                 MenuItem shareItem = menu.findItem(R.id.action_share);

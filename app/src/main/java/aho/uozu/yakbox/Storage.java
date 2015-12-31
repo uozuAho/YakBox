@@ -1,7 +1,6 @@
 package aho.uozu.yakbox;
 
 import android.content.Context;
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -180,37 +179,16 @@ class Storage {
         return new File(getStorageDir().toString() + "/temp");
     }
 
-    /**
-     * Returns the directory for application-private files.
-     */
-    public File getPrivateStorageDir() {
-        return context.getFilesDir();
-    }
-
     /** Get all the wave files in the storage directory */
     private List<File> getAllSavedRecordings() throws StorageUnavailableException {
         List<File> waveFiles = new ArrayList<>();
-        // TODO: this check is unnecessary
-        if (isExternalStorageReadWriteable()) {
-            File dir = getStorageDir();
-            // TODO: no need for null check here
-            if (dir != null) {
-                for (File f : dir.listFiles()) {
-                    if (f.toString().endsWith(".wav")) {
-                        waveFiles.add(f);
-                    }
-                }
+        File dir = getStorageDir();
+        for (File f : dir.listFiles()) {
+            if (f.toString().endsWith(".wav")) {
+                waveFiles.add(f);
             }
         }
         return waveFiles;
-    }
-
-    /**
-     * Returns true if external media is available and writeable.
-     */
-    private boolean isExternalStorageReadWriteable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     private String fileToRecordingName(File file) {
@@ -231,16 +209,10 @@ class Storage {
      */
     private File recordingNameToFile(String name)
             throws FileNotFoundException, StorageUnavailableException {
-        File file = null;
-        if (isExternalStorageReadWriteable()) {
-            File dir = getStorageDir();
-            if (dir != null) {
-                String path = dir.toString() + "/" + name + ".wav";
-                file = new File(path);
-                if (!file.exists()) {
-                    throw new FileNotFoundException();
-                }
-            }
+        File dir = getStorageDir();
+        File file = new File(dir, name + ".wav");
+        if (!file.exists()) {
+            throw new FileNotFoundException();
         }
         return file;
     }
