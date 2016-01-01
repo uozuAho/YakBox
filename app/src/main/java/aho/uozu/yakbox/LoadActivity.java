@@ -1,10 +1,11 @@
 package aho.uozu.yakbox;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,7 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class LoadActivity extends ListActivity {
+public class LoadActivity extends AppCompatActivity {
+
+    private ListView mListView;
 
     private List<String> mItems;
     private ArrayAdapter<String> mAdapter;
@@ -30,6 +33,9 @@ public class LoadActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setLogo(R.drawable.ic_launcher_sml);
 
         mStorage = Storage.getInstance(this);
         try {
@@ -41,13 +47,13 @@ public class LoadActivity extends ListActivity {
         }
         Collections.sort(mItems);
 
+        // Configure list view
+        mListView = (ListView) findViewById(R.id.list);
         mAdapter = new ArrayAdapter<>(this, R.layout.load_list_item, mItems);
-        setListAdapter(mAdapter);
-
-        ListView lv = getListView();
+        mListView.setAdapter(mAdapter);
 
         // short taps
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
@@ -60,8 +66,8 @@ public class LoadActivity extends ListActivity {
         });
 
         // long taps
-        lv.setLongClickable(true);
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        mListView.setLongClickable(true);
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 showDeleteDialog(position);

@@ -78,7 +78,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setLogo(R.drawable.toolbar_logo);
 
-        // Hide title. Still seems to take up room...
+        // Hide title
+        // TODO: allow menu icons to use title room
         android.support.v7.app.ActionBar bar = getSupportActionBar();
         if (bar != null) {
             bar.setDisplayShowTitleEnabled(false);
