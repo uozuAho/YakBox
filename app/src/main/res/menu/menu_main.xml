@@ -11,6 +11,7 @@
     <item
         android:id="@+id/action_load"
         android:title="@string/action_load"
+        android:icon="@drawable/ic_load_white_48dp"
         android:orderInCategory="101"
         app:showAsAction="ifRoom" />
     <item
