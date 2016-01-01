@@ -76,6 +76,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setLogo(R.drawable.toolbar_logo);
+
+        // Hide title. Still seems to take up room...
         android.support.v7.app.ActionBar bar = getSupportActionBar();
         if (bar != null) {
             bar.setDisplayShowTitleEnabled(false);
