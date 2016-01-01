@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Used for sharing
      */
-    private static final String TEMP_WAV_FILENAME = "yakbox-sound";
+    private static final String TEMP_WAV_FILENAME = "yak";
     private static final int MAX_RECORD_TIME_S = 20;
     // Delay between end of last recording and next recording
     private static final int RECORD_WAIT_MS = 300;

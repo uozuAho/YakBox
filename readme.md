@@ -11,7 +11,6 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
-- user can rename shared recording
 - load icon
 - remove title from toolbar (invisible but still taking up room?)
 - load activity toolbar
@@ -21,12 +20,12 @@ and reverse, at various speeds.
     + multi-select + delete
 - pre-release: compare with current release
 ## other
+- user can rename shared recording?
 - share:
     + facebook: https://developers.facebook.com/docs/sharing/android
         * can't share audio files directly. Upload to soundcloud?
     + twitter: same as fb
 - centralise error toasts, put error messages in string resources
-- dark menus (currently white bg)
 - 'about' page is ugly
 - file io on separate thread
 - change to MVP architecture
