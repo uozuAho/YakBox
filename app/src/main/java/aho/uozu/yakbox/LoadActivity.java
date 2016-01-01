@@ -29,6 +29,7 @@ public class LoadActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_load);
 
         mStorage = Storage.getInstance(this);
         try {
