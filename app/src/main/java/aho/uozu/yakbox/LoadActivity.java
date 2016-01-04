@@ -4,11 +4,14 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -23,9 +26,10 @@ import java.util.List;
 
 public class LoadActivity extends AppCompatActivity {
 
-    private ListView mListView;
-
-    private List<String> mItems;
+    /** All recordings at the time this activity was created */
+    private List<String> mAllRecordings;
+    /** Recordings to give to the ListView */
+    private List<String> mViewRecordings;
     private ArrayAdapter<String> mAdapter;
     private Storage mStorage;
 
@@ -45,17 +49,19 @@ public class LoadActivity extends AppCompatActivity {
 
         mStorage = Storage.getInstance(this);
         try {
-            mItems = mStorage.getSavedRecordingNames();
+            mAllRecordings = mStorage.getSavedRecordingNames();
         } catch (Storage.StorageUnavailableException e) {
             String msg = "Error: Can't access storage";
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            mItems = new ArrayList<>();
+            mAllRecordings = new ArrayList<>();
         }
-        Collections.sort(mItems);
+        Collections.sort(mAllRecordings);
+
+        mViewRecordings = new ArrayList<>(mAllRecordings);
 
         // Configure list view
-        mListView = (ListView) findViewById(R.id.list);
-        mAdapter = new ArrayAdapter<>(this, R.layout.load_list_item, mItems);
+        ListView mListView = (ListView) findViewById(R.id.list);
+        mAdapter = new ArrayAdapter<>(this, R.layout.load_list_item, mViewRecordings);
         mListView.setAdapter(mAdapter);
 
         // short taps
@@ -85,12 +91,55 @@ public class LoadActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_load, menu);
+
+        // configure search
+        final MenuItem item = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterViewList(newText);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            }
+        });
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                filterViewList("");
+                return false;
+            }
+        });
+
         return true;
+    }
+
+    /**
+     * Filter the view list for items containing the given pattern
+     */
+    private void filterViewList(String pattern) {
+        if (pattern.isEmpty()) {
+            mViewRecordings.clear();
+            mViewRecordings.addAll(mAllRecordings);
+        }
+        else {
+            mViewRecordings.clear();
+            for (String item : mAllRecordings) {
+                if (item.contains(pattern)) {
+                    mViewRecordings.add(item);
+                }
+            }
+        }
     }
 
     private void showDeleteDialog(final int itemIdx) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        String name = mItems.get(itemIdx);
+        String name = mAllRecordings.get(itemIdx);
 
         builder .setMessage(getString(R.string.delete_dialog_msg) + " " + name + "?")
                 .setPositiveButton(R.string.delete_dialog_positive,
@@ -109,8 +158,8 @@ public class LoadActivity extends AppCompatActivity {
     }
 
     private void deleteRecording(int itemIdx) {
-        String name = mItems.get(itemIdx);
-        mItems.remove(itemIdx);
+        String name = mAllRecordings.get(itemIdx);
+        mAllRecordings.remove(itemIdx);
         mAdapter.notifyDataSetChanged();
         try {
             mStorage.deleteRecording(name);
