@@ -10,9 +10,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -61,6 +64,7 @@ public class LoadActivity extends AppCompatActivity {
 
         // Configure list view
         ListView mListView = (ListView) findViewById(R.id.list);
+        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         mAdapter = new ArrayAdapter<>(this, R.layout.load_list_item, mViewRecordings);
         mListView.setAdapter(mAdapter);
 
@@ -77,13 +81,40 @@ public class LoadActivity extends AppCompatActivity {
             }
         });
 
-        // long taps
-        mListView.setLongClickable(true);
-        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        // multi-select
+        mListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                showDeleteDialog(position);
+            public void onItemCheckedStateChanged(ActionMode actionMode, int i, long l, boolean b) {
+
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                MenuInflater inflater = actionMode.getMenuInflater();
+                inflater.inflate(R.menu.menu_load_context, menu);
                 return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                return false;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+                switch (menuItem.getItemId()) {
+                    case R.id.action_test:
+                        Log.d(TAG, "meh");
+                        actionMode.finish();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode actionMode) {
+
             }
         });
     }

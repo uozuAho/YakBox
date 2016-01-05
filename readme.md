@@ -12,9 +12,6 @@ and reverse, at various speeds.
 # Todo
 ## toolbar
 - load activity toolbar
-    + follow http://developer.android.com/training/appbar/setting-up.html
-    + back
-    + search
     + multi-select + delete
 - pre-release
     + compare with current release
