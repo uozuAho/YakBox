@@ -17,7 +17,8 @@
 
     <!-- Load activity -->
     <string name="title_activity_load">Load</string>
-    <string name="delete_dialog_msg">Delete</string>
+    <string name="delete_single_msg">Delete</string>
+    <string name="delete_multiple_msg">Delete selected yaks?</string>
     <string name="delete_dialog_positive">Delete</string>
     <string name="delete_dialog_negative">Cancel</string>
     <!-- Load activity menus -->

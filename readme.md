@@ -11,7 +11,6 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
-- test many deletes - need a progress bar?
 - share at current speed
 - pre-release
     + check code todos

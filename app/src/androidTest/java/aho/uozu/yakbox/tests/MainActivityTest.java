@@ -47,6 +47,7 @@ public class MainActivityTest
         // This test takes a while to run. Slow after stop recording.
         // What's causing slowness? I commented out button background
         // update, still took same time (but no skipped frame warning).
+        // Possibly IO in UI thread is the cause
         for (int i = 0; i < 5; i++) {
             sendSayButtonEvent(MotionEvent.ACTION_DOWN);
             solo.sleep(100 + r.nextInt(500));

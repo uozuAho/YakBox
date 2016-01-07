@@ -198,15 +198,13 @@ public class LoadActivity extends AppCompatActivity {
     }
 
     private void showDeleteDialog(final List<Integer> idxs, final Runnable onDeleteConfirm) {
-        Log.d(TAG, idxs.toString());
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         String msg;
         if (idxs.size() == 1) {
             String name = mViewRecordings.get(idxs.get(0));
-            msg = getString(R.string.delete_dialog_msg) + " " + name + "?";
+            msg = getString(R.string.delete_single_msg) + " " + name + "?";
         } else {
-            // TODO: string resource
-            msg = getString(R.string.delete_dialog_msg) + " selected yaks?";
+            msg = getString(R.string.delete_multiple_msg);
         }
 
         builder .setMessage(msg)
