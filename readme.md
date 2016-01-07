@@ -11,9 +11,8 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
-- load activity toolbar
-    + multi-select + delete
 - test many deletes - need a progress bar?
+- share at current speed
 - pre-release
     + check code todos
     + compare with current release

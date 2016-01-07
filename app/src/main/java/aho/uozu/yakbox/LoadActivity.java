@@ -96,12 +96,15 @@ public class LoadActivity extends AppCompatActivity {
             }
 
             @Override
-            public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            public boolean onActionItemClicked(final ActionMode actionMode, MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
                     case R.id.action_delete:
-                        showDeleteDialog(getSelectedViewIds());
-                        // TODO: call the following after delete confirmed
-                        actionMode.finish();
+                        showDeleteDialog(getSelectedViewIds(), new Runnable() {
+                            @Override
+                            public void run() {
+                                actionMode.finish();
+                            }
+                        });
                         return true;
                     default:
                         return false;
@@ -194,7 +197,7 @@ public class LoadActivity extends AppCompatActivity {
         }
     }
 
-    private void showDeleteDialog(final List<Integer> idxs) {
+    private void showDeleteDialog(final List<Integer> idxs, final Runnable onDeleteConfirm) {
         Log.d(TAG, idxs.toString());
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         String msg;
@@ -212,6 +215,7 @@ public class LoadActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
                                 deleteRecordings(idxs);
+                                onDeleteConfirm.run();
                             }
                         })
                 .setNegativeButton(R.string.delete_dialog_negative,
