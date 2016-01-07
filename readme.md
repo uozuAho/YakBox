@@ -13,7 +13,9 @@ and reverse, at various speeds.
 ## toolbar
 - load activity toolbar
     + multi-select + delete
+- test many deletes - need a progress bar?
 - pre-release
+    + check code todos
     + compare with current release
     + update app store images
 ## other

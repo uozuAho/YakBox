@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,9 +30,10 @@ import java.util.List;
 
 public class LoadActivity extends AppCompatActivity {
 
-    /** All recordings at the time this activity was created */
+    private ListView mListView;
+    /** All saved recordings. Used as a cache to reduce file system usage */
     private List<String> mAllRecordings;
-    /** Recordings to give to the ListView */
+    /** Recordings to show in the list view (some may be filtered out by search term) */
     private List<String> mViewRecordings;
     private ArrayAdapter<String> mAdapter;
     private Storage mStorage;
@@ -51,19 +53,12 @@ public class LoadActivity extends AppCompatActivity {
         }
 
         mStorage = Storage.getInstance(this);
-        try {
-            mAllRecordings = mStorage.getSavedRecordingNames();
-        } catch (Storage.StorageUnavailableException e) {
-            String msg = "Error: Can't access storage";
-            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            mAllRecordings = new ArrayList<>();
-        }
-        Collections.sort(mAllRecordings);
+        updateAllRecordingsList();
 
         mViewRecordings = new ArrayList<>(mAllRecordings);
 
         // Configure list view
-        ListView mListView = (ListView) findViewById(R.id.list);
+        mListView = (ListView) findViewById(R.id.list);
         mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         mAdapter = new ArrayAdapter<>(this, R.layout.load_list_item, mViewRecordings);
         mListView.setAdapter(mAdapter);
@@ -103,8 +98,9 @@ public class LoadActivity extends AppCompatActivity {
             @Override
             public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
                 switch (menuItem.getItemId()) {
-                    case R.id.action_test:
-                        Log.d(TAG, "meh");
+                    case R.id.action_delete:
+                        showDeleteDialog(getSelectedViewIds());
+                        // TODO: call the following after delete confirmed
                         actionMode.finish();
                         return true;
                     default:
@@ -117,6 +113,36 @@ public class LoadActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    /**
+     * Update {@link #mAllRecordings}
+     */
+    private void updateAllRecordingsList() {
+        try {
+            mAllRecordings = mStorage.getSavedRecordingNames();
+        } catch (Storage.StorageUnavailableException e) {
+            String msg = "Error: Can't access storage";
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            mAllRecordings = new ArrayList<>();
+        }
+        Collections.sort(mAllRecordings);
+    }
+
+    /**
+     * Get the currently selected item indices in {@link #mViewRecordings}.
+     *
+     * This list only remains valid while the view list remains unchanged.
+     */
+    private List<Integer> getSelectedViewIds() {
+        List<Integer> selectedList = new ArrayList<>();
+        SparseBooleanArray selected = mListView.getCheckedItemPositions();
+        for (int i = 0; i < mViewRecordings.size(); i++) {
+            if (selected.get(i)) {
+                selectedList.add(i);
+            }
+        }
+        return selectedList;
     }
 
     @Override
@@ -168,16 +194,24 @@ public class LoadActivity extends AppCompatActivity {
         }
     }
 
-    private void showDeleteDialog(final int itemIdx) {
+    private void showDeleteDialog(final List<Integer> idxs) {
+        Log.d(TAG, idxs.toString());
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        String name = mAllRecordings.get(itemIdx);
+        String msg;
+        if (idxs.size() == 1) {
+            String name = mViewRecordings.get(idxs.get(0));
+            msg = getString(R.string.delete_dialog_msg) + " " + name + "?";
+        } else {
+            // TODO: string resource
+            msg = getString(R.string.delete_dialog_msg) + " selected yaks?";
+        }
 
-        builder .setMessage(getString(R.string.delete_dialog_msg) + " " + name + "?")
+        builder .setMessage(msg)
                 .setPositiveButton(R.string.delete_dialog_positive,
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                deleteRecording(itemIdx);
+                                deleteRecordings(idxs);
                             }
                         })
                 .setNegativeButton(R.string.delete_dialog_negative,
@@ -188,15 +222,30 @@ public class LoadActivity extends AppCompatActivity {
         builder.show();
     }
 
-    private void deleteRecording(int itemIdx) {
-        String name = mAllRecordings.get(itemIdx);
-        mAllRecordings.remove(itemIdx);
-        mAdapter.notifyDataSetChanged();
+    private boolean deleteRecording(int itemIdx) {
+        boolean deleted = false;
+        String name = mViewRecordings.get(itemIdx);
         try {
-            mStorage.deleteRecording(name);
+            deleted = mStorage.deleteRecording(name);
         }
         catch (IOException e) {
             Log.e(TAG, "Error deleting " + name, e);
         }
+        return deleted;
+    }
+
+    /**
+     * Delete recordings by index in {@link #mViewRecordings}
+     */
+    private void deleteRecordings(List<Integer> idxs) {
+        List<String> removeFromView = new ArrayList<>();
+        for (int idx : idxs) {
+            if (deleteRecording(idx)) {
+                removeFromView.add(mViewRecordings.get(idx));
+            }
+        }
+        mViewRecordings.removeAll(removeFromView);
+        mAdapter.notifyDataSetChanged();
+        updateAllRecordingsList();
     }
 }

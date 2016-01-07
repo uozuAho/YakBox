@@ -159,13 +159,18 @@ class Storage {
         buffer.incrementIdx(wav.getNumFrames());
     }
 
-    /** Delete the specified recording */
-    public void deleteRecording(String name)
+    /**
+     * Delete the specified recording.
+     *
+     * @throws FileNotFoundException if named recording doesn't exist
+     * @throws aho.uozu.yakbox.Storage.StorageUnavailableException if storage is unavailable
+     *
+     * @return true if the recording was deleted, false otherwise
+     */
+    public boolean deleteRecording(String name)
             throws FileNotFoundException, StorageUnavailableException {
         File f = recordingNameToFile(name);
-        if (!f.delete()) {
-            Log.e(TAG, name + " not deleted");
-        }
+        return f.delete();
     }
 
     /** Returns true if the given recording name exists */
