@@ -15,7 +15,8 @@ public class AboutHelpActivity extends AppCompatActivity {
         // Set version text
         TextView versionTxt = (TextView) findViewById(R.id.txt_version);
         try {
-            versionTxt.setText(getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+            String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            versionTxt.setText(getString(R.string.about_version_label) + " " + versionName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }

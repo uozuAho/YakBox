@@ -11,8 +11,6 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
-- 'about' page is ugly
-    + also doesn't scroll - text cut off in landscape
 - pre-release
     + check code todos
     + compare with current release
@@ -33,5 +31,3 @@ and reverse, at various speeds.
 - options / settings
     + normalise recordings
     + strip silence @ start & end
-- delete multiple recordings
-- load/save as icons?
