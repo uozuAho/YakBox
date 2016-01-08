@@ -11,12 +11,15 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
-- change selected / not selected icons in load screen
 - pre-release
     + check code todos
     + compare with current release
     + update app store images
 ## other
+- highlight selected items in load screen
+    + can't simply make a background color selector, as this overrides
+      long click animation
+- 'load' fragment for bigger screens
 - user can rename shared recording?
 - share:
     + facebook: https://developers.facebook.com/docs/sharing/android
