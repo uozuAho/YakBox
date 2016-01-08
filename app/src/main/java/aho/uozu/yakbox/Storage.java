@@ -205,9 +205,12 @@ class Storage {
     /** Get all recordings in the given directory */
     private List<File> getRecordings(File dir) {
         List<File> waveFiles = new ArrayList<>();
-        for (File f : dir.listFiles()) {
-            if (f.toString().endsWith(".wav")) {
-                waveFiles.add(f);
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.toString().endsWith(".wav")) {
+                    waveFiles.add(f);
+                }
             }
         }
         return waveFiles;
