@@ -363,8 +363,11 @@ public class MainActivity extends AppCompatActivity {
 
     private File saveTempWav()
             throws Storage.StorageUnavailableException, IOException {
-        if (mBuffer != null && mRecorder != null) {
-            return mStorage.saveTempRecording(mBuffer, TEMP_WAV_FILENAME, mRecorder.getSampleRate());
+        if (mBuffer != null && mRecorder != null && mPlayer != null) {
+            double speed = getPlaybackSpeed();
+            int samplingRate = mPlayer.getPlaybackSamplingRate(speed);
+            Log.d(TAG, "saveTempWav: " + speed + ": " + samplingRate);
+            return mStorage.saveTempRecording(mBuffer, TEMP_WAV_FILENAME, samplingRate);
         }
         return null;
     }
@@ -433,21 +436,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+    private File prepareShareFile() {
         try {
-            File tempWav = saveTempWav();
-            if (tempWav != null) {
-                MenuItem shareItem = menu.findItem(R.id.action_share);
-                ShareActionProvider myShareActionProvider =
-                        (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-                Intent myShareIntent = new Intent(Intent.ACTION_SEND);
-                myShareIntent.setType("audio/wav");
-                myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(tempWav));
-                myShareActionProvider.setShareIntent(myShareIntent);
-            }
+            return saveTempWav();
         }
         catch (Storage.StorageUnavailableException e) {
             String msg = "Error: Can't access storage";
@@ -457,6 +448,24 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "Error saving recording", e);
             String msg = "Error preparing yak for sharing";
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        // share action
+        File shareFile = prepareShareFile();
+        if (shareFile != null) {
+            MenuItem shareItem = menu.findItem(R.id.action_share);
+            ShareActionProvider myShareActionProvider =
+                    (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+            Intent myShareIntent = new Intent(Intent.ACTION_SEND);
+            myShareIntent.setType("audio/wav");
+            myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(shareFile));
+            myShareActionProvider.setShareIntent(myShareIntent);
         }
         return true;
     }
@@ -476,6 +485,10 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_about:
                 startHelpActivity();
                 return true;
+            case R.id.action_share:
+                if (prepareShareFile() != null) {
+                    super.onOptionsItemSelected(item);
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }

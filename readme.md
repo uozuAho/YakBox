@@ -11,7 +11,7 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
-- share at current speed
+- change selected / not selected icons in load screen
 - pre-release
     + check code todos
     + compare with current release

@@ -84,7 +84,7 @@ public class AudioPlayer {
         mAudioTrack = null;
     }
 
-    private int getPlaybackSamplingRate(double rate) {
+    public int getPlaybackSamplingRate(double rate) {
         return (int) (mSampleRate * rate);
     }
 
