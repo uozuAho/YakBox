@@ -11,6 +11,8 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
+- 'about' page is ugly
+    + also doesn't scroll - text cut off in landscape
 - pre-release
     + check code todos
     + compare with current release
@@ -26,8 +28,6 @@ and reverse, at various speeds.
         * can't share audio files directly. Upload to soundcloud?
     + twitter: same as fb
 - centralise error toasts, put error messages in string resources
-- 'about' page is ugly
-    + also doesn't scroll - text cut off in landscape
 - file io on separate thread
 - change to MVP architecture
 - options / settings
