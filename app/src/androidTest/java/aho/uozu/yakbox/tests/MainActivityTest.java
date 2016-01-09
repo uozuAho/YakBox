@@ -11,6 +11,8 @@ import android.widget.Button;
 import com.robotium.solo.Solo;
 
 import java.io.File;
+import java.io.IOError;
+import java.io.IOException;
 import java.util.Random;
 
 import aho.uozu.yakbox.MainActivity;
@@ -100,7 +102,13 @@ public class MainActivityTest
     public void testSaveAndLoad() {
         final String TEST_FILENAME = "asdf";
 
-        deleteAllSavedFiles();
+        try {
+            Utils.deleteAllRecordings(getActivity());
+        } catch (IOException e) {
+            Log.e(TAG, "", e);
+            fail();
+        }
+
         clickToolbarSave();
         solo.enterText(0, TEST_FILENAME);
         solo.clickOnView(solo.getButton("Save"));
@@ -120,11 +128,6 @@ public class MainActivityTest
         // check that saved item appears in load screen
         clickToolbarLoad();
         assertTrue(solo.searchText(TEST_FILENAME));
-
-        // delete recording
-        solo.clickLongOnText(TEST_FILENAME);
-        solo.clickOnView(solo.getButton("Delete"));
-        assertFalse(solo.searchText(TEST_FILENAME));
     }
 
     /**
@@ -164,19 +167,6 @@ public class MainActivityTest
             mOrientation = Solo.PORTRAIT;
         }
         solo.setActivityOrientation(mOrientation);
-    }
-
-    private void deleteAllSavedFiles() {
-        File dir = getActivity().getExternalFilesDir(null);
-        if (dir != null) {
-            for (File f : dir.listFiles()) {
-                if (f.toString().endsWith(".wav")) {
-                    if (!f.delete()) {
-                        Log.e(TAG, "couldn't delete " + f.toString());
-                    }
-                }
-            }
-        }
     }
 
     private void pressPlay() {

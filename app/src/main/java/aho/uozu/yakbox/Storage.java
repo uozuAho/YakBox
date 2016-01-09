@@ -15,7 +15,7 @@ import aho.uozu.audio.wav.WaveFile;
 /**
  * Handles saving / loading audio files
  */
-class Storage {
+public class Storage {
 
     private static final String TAG = "Yakbox-Storage";
     private static final String BUFFER_FILENAME = "yakbox-sound.bin";
