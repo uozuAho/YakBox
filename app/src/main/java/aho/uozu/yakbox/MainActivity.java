@@ -178,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
         catch (Exception e) {
+            // TODO: show error cause in message
             releaseAudioResources();
             ACRA.getErrorReporter().handleException(e, true);
             // application ends here (true parameter)

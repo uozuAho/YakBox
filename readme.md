@@ -11,10 +11,12 @@ and reverse, at various speeds.
 
 # Todo
 ## toolbar
+- doesn't run on android 5.1
 - pre-release
     + check code todos
     + compare with current release
     + update app store images
+
 ## other
 - highlight selected items in load screen
     + can't simply make a background color selector, as this overrides
@@ -29,5 +31,6 @@ and reverse, at various speeds.
 - file io on separate thread
 - change to MVP architecture
 - options / settings
+    + don't rotate screen
     + normalise recordings
     + strip silence @ start & end

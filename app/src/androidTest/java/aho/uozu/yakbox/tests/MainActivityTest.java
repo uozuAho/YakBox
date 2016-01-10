@@ -10,8 +10,6 @@ import android.widget.Button;
 
 import com.robotium.solo.Solo;
 
-import java.io.File;
-import java.io.IOError;
 import java.io.IOException;
 import java.util.Random;
 
@@ -26,6 +24,7 @@ public class MainActivityTest
     private int mOrientation;
 
     private static final String TAG = "MainActTest";
+    private static final int MAX_RECORD_MS = 20000;
 
     public MainActivityTest() {
         super(MainActivity.class);
@@ -61,7 +60,7 @@ public class MainActivityTest
         }
         Log.d(TAG, "record to full buffer");
         sendSayButtonEvent(MotionEvent.ACTION_DOWN);
-        solo.sleep(5000);
+        solo.sleep(MAX_RECORD_MS);
         sendSayButtonEvent(MotionEvent.ACTION_UP);
         pressPlay();
         solo.sleep(500);
