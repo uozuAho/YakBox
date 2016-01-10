@@ -10,8 +10,9 @@ and reverse, at various speeds.
     + Sometimes this happens even without rotating the device
 
 # Todo
-## toolbar
-- doesn't run on android 5.1
+## 3.0
+- clicking on share if it's already displayed doesn't save temp wav
+- doesn't run on android 5.1 - emulator problem?
 - pre-release
     + check code todos
     + compare with current release
