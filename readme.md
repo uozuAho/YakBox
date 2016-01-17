@@ -8,11 +8,11 @@ and reverse, at various speeds.
 - Recording & rotating device can sometimes cause crash, then can't
   reopen app until after reboot (can't init audio record).
     + Sometimes this happens even without rotating the device
+- share file doesn't get saved (sometimes?) after coming back from device sleep.
 
 # Todo
 ## 3.0
-- clicking on share if it's already displayed doesn't save temp wav
-- doesn't run on android 5.1 - emulator problem?
+- share via gmail works once after app start, then not again.
 - pre-release
     + check code todos
     + compare with current release

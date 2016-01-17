@@ -455,11 +455,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d(TAG, "onCreateOptionsMenu");
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         // share action
         File shareFile = prepareShareFile();
         if (shareFile != null) {
+            // set share intent
             MenuItem shareItem = menu.findItem(R.id.action_share);
             ShareActionProvider myShareActionProvider =
                     (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
@@ -467,6 +469,15 @@ public class MainActivity extends AppCompatActivity {
             myShareIntent.setType("audio/wav");
             myShareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(shareFile));
             myShareActionProvider.setShareIntent(myShareIntent);
+            // save temp wav on share click
+            myShareActionProvider.setOnShareTargetSelectedListener(
+                    new ShareActionProvider.OnShareTargetSelectedListener() {
+                @Override
+                public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
+                    prepareShareFile();
+                    return false;
+                }
+            });
         }
         return true;
     }
@@ -486,10 +497,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_about:
                 startHelpActivity();
                 return true;
-            case R.id.action_share:
-                if (prepareShareFile() != null) {
-                    super.onOptionsItemSelected(item);
-                }
             default:
                 return super.onOptionsItemSelected(item);
         }
