@@ -26,7 +26,7 @@ public class AudioBreaker
     private AudioBuffer mAudioBuffer;
     private Random mRandom;
 
-    private static final int MAX_RECORD_TIME_S = 5;
+    private static final int MAX_RECORD_TIME_S = 20;
     private static final int TEST_ITERATIONS = 100;
     private static final String TAG = "AudioBreaker";
 
