@@ -8,17 +8,20 @@ and reverse, at various speeds.
 - Recording & rotating device can sometimes cause crash, then can't
   reopen app until after reboot (can't init audio record).
     + Sometimes this happens even without rotating the device
-- share file doesn't get saved (sometimes?) after coming back from device sleep.
+- share file doesn't get saved (sometimes?) after coming back from device sleep
 
 # Todo
 ## 3.0
-- share via gmail works once after app start, then not again.
 - pre-release
     + check code todos
     + compare with current release
     + update app store images
 
 ## other
+- upgrade ACRA, build tools
+- too much processing being done on UI thread?
+- android 6.0 storage error
+- write test for share
 - highlight selected items in load screen
     + can't simply make a background color selector, as this overrides
       long click animation

@@ -158,13 +158,20 @@ class AudioRecordThreadSafe {
      *
      * @return Supported sampling rate in hertz
      * @throws UnsupportedOperationException if no supported sampling rates
+     *
+     * TODO: This can return a rate that doesn't work (fails on initialise).
+     *       Seen on emulators (which tend to like 8000Hz), not sure on real hardware.
      */
     private int findRecordingSampleRate() throws UnsupportedOperationException {
+        // Workaround: If returning bad rates on emulators:
+//         for (int rate : new int[] { 8000, 22050, 16000, 11025, 8000 }) {
         for (int rate : new int[] { 22050, 16000, 11025, 8000 }) {
             int bufferSize = AudioRecord.getMinBufferSize(rate,
                     AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-            if (bufferSize > 0)
+            if (bufferSize > 0) {
+                Log.d(TAG, "Supported sample rate found: " + rate);
                 return rate;
+            }
         }
         throw new UnsupportedOperationException("Unsupported audio hardware");
     }

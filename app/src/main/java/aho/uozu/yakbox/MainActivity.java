@@ -176,18 +176,19 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             });
+
+            // init audio buffer
+            if (mBuffer == null) {
+                mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
+                mStorage.loadBuffer(mBuffer);
+            }
         }
         catch (Exception e) {
             // TODO: show error cause in message
+            // I don't think this is possible with ACRA - will need dialog
             releaseAudioResources();
             ACRA.getErrorReporter().handleException(e, true);
             // application ends here (true parameter)
-        }
-
-        // init audio buffer
-        if (mBuffer == null) {
-            mBuffer = new AudioBuffer(mRecorder.getBufferSizeSamples());
-            mStorage.loadBuffer(mBuffer);
         }
 
         // make volume buttons adjust music stream

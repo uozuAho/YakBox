@@ -3,14 +3,13 @@
     package="aho.uozu.yakbox" >
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Note: Don't use "max-sdk" here: can cause permission denied errors -->
     <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18" >
+        android:name="android.permission.READ_EXTERNAL_STORAGE">
         Uses external storage to load recordings.
     </uses-permission>
     <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18" >
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE">
         Uses external storage to save recordings.
     </uses-permission>
 
