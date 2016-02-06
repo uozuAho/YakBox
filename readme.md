@@ -12,6 +12,7 @@ and reverse, at various speeds.
 
 # Todo
 ## 3.0
+- upgrade ACRA, build tools
 - android 6.0 storage error
 - pre-release
     + check code todos
@@ -19,7 +20,6 @@ and reverse, at various speeds.
     + update app store images
 
 ## other
-- upgrade ACRA, build tools
 - too much processing being done on UI thread?
 - write test for share
 - highlight selected items in load screen
