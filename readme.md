@@ -12,6 +12,7 @@ and reverse, at various speeds.
 
 # Todo
 ## 3.0
+- android 6.0 storage error
 - pre-release
     + check code todos
     + compare with current release
@@ -20,7 +21,6 @@ and reverse, at various speeds.
 ## other
 - upgrade ACRA, build tools
 - too much processing being done on UI thread?
-- android 6.0 storage error
 - write test for share
 - highlight selected items in load screen
     + can't simply make a background color selector, as this overrides
