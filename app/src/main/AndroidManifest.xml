@@ -3,7 +3,10 @@
     package="aho.uozu.yakbox" >
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- Note: Don't use "max-sdk" here: can cause permission denied errors -->
+    <!-- Note: Don't use "max-sdk" here: can cause permission denied errors
+        TODO: confirm this. Read/write works in android 6 without asking these
+        permissions at runtime.
+    -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE">
         Uses external storage to load recordings.

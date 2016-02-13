@@ -1,12 +1,16 @@
 package aho.uozu.yakbox;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
@@ -53,7 +57,11 @@ public class MainActivity extends AppCompatActivity {
     private long mLastRecordEndMillis = 0;
     private boolean mIsRecording = false;
 
+    /** Have told the user to increase their volume when play pressed */
     private boolean mShowedVolumeWarningOnPlay = false;
+
+    /** Have asked for audio permission on resume */
+    private boolean mAskedRecordPermissionOnResume = false;
 
     // constants
     private static final String TAG = "YakBox";
@@ -69,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private static final double LOW_VOLUME = 0.33;
 
     private static final int LOAD_RECORDING_REQUEST = 1;
+    private static final int PERMISSION_REQ_RECORD_AUDIO = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,11 +163,40 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private boolean haveRecordAudioPermission() {
+        return ContextCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestRecordAudioPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},
+                PERMISSION_REQ_RECORD_AUDIO);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
 
-        // init audio recorder and player
+        // don't have record permission
+        if (!haveRecordAudioPermission()) {
+            // haven't asked for it yet (prevents infinite loop)
+            if (!mAskedRecordPermissionOnResume)
+            {
+                // ask
+                mAskedRecordPermissionOnResume = true;
+                requestRecordAudioPermission();
+            }
+        }
+        else {
+            initAudio();
+        }
+
+        // make volume buttons adjust music stream
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        lowVolumeWarningIfNecessary();
+    }
+
+    private void initAudio() {
         try {
             mRecorder = new AudioRecorder(MAX_RECORD_TIME_S);
             mPlayer = new AudioPlayer(mRecorder.getSampleRate(),
@@ -191,10 +229,6 @@ public class MainActivity extends AppCompatActivity {
             ACRA.getErrorReporter().handleException(e, true);
             // application ends here (true parameter)
         }
-
-        // make volume buttons adjust music stream
-        setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        lowVolumeWarningIfNecessary();
     }
 
     /**
@@ -213,13 +247,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        long interval = SystemClock.elapsedRealtime() - mLastRecordEndMillis;
-        if (!mIsRecording && interval > RECORD_WAIT_MS) {
-            Log.d(TAG, "recording START");
-            mBuffer.resetIdx();
-            mRecorder.startRecording();
-            mBtnSay.setBackgroundResource(R.drawable.round_button_red);
-            mIsRecording = true;
+        if (haveRecordAudioPermission()) {
+            long interval = SystemClock.elapsedRealtime() - mLastRecordEndMillis;
+            if (!mIsRecording && interval > RECORD_WAIT_MS) {
+                Log.d(TAG, "recording START");
+                mBuffer.resetIdx();
+                mRecorder.startRecording();
+                mBtnSay.setBackgroundResource(R.drawable.round_button_red);
+                mIsRecording = true;
+            }
+        }
+        else {
+            requestRecordAudioPermission();
         }
     }
 
@@ -244,7 +283,9 @@ public class MainActivity extends AppCompatActivity {
             lowVolumeWarningIfNecessary();
             mShowedVolumeWarningOnPlay = true;
         }
-        mPlayer.play(mBuffer, getPlaybackSpeed());
+        if (mPlayer != null && mBuffer != null) {
+            mPlayer.play(mBuffer, getPlaybackSpeed());
+        }
     }
 
     private void playReverse() {
@@ -252,9 +293,11 @@ public class MainActivity extends AppCompatActivity {
             lowVolumeWarningIfNecessary();
             mShowedVolumeWarningOnPlay = true;
         }
-        mBuffer.reverse();
-        mPlayer.play(mBuffer, getPlaybackSpeed());
-        mBuffer.reverse();
+        if (mPlayer != null && mBuffer != null) {
+            mBuffer.reverse();
+            mPlayer.play(mBuffer, getPlaybackSpeed());
+            mBuffer.reverse();
+        }
     }
 
     /**
@@ -501,6 +544,21 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQ_RECORD_AUDIO:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    initAudio();
+                }
+                break;
+            default:
+                break;
         }
     }
 }
