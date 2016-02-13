@@ -184,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         catch (Exception e) {
+            Log.e(TAG, "Fatal error", e);
             // TODO: show error cause in message
             // I don't think this is possible with ACRA - will need dialog
             releaseAudioResources();

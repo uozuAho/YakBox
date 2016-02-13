@@ -1,16 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    // wait for ACRA 4.7 before updating compile version
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "aho.uozu.yakbox"
         versionCode 8
         versionName "3.0"
         minSdkVersion 15
-        targetSdkVersion 22
+        targetSdkVersion 23
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
     buildTypes {
@@ -33,7 +32,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':common')
-    compile "com.android.support:appcompat-v7:22.2.1"
+    compile "com.android.support:appcompat-v7:23.1.1"
     compile 'ch.acra:acra:4.8.1'
     testCompile 'junit:junit:4.12'
     androidTestCompile 'com.jayway.android.robotium:robotium-solo:5.5.2'

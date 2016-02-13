@@ -12,8 +12,7 @@ and reverse, at various speeds.
 
 # Todo
 ## 3.0
-- upgrade ACRA, build tools
-- android 6.0 storage error
+- android 6.0 storage error - review runtime permissions
 - pre-release
     + check code todos
     + compare with current release

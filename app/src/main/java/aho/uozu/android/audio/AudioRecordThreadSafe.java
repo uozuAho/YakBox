@@ -164,8 +164,8 @@ class AudioRecordThreadSafe {
      */
     private int findRecordingSampleRate() throws UnsupportedOperationException {
         // Workaround: If returning bad rates on emulators:
-//         for (int rate : new int[] { 8000, 22050, 16000, 11025, 8000 }) {
-        for (int rate : new int[] { 22050, 16000, 11025, 8000 }) {
+         for (int rate : new int[] { 44100, 22050, 16000, 11025, 8000 }) {
+//        for (int rate : new int[] { 22050, 16000, 11025, 8000 }) {
             int bufferSize = AudioRecord.getMinBufferSize(rate,
                     AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
             if (bufferSize > 0) {
