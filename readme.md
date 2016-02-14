@@ -8,17 +8,9 @@ and reverse, at various speeds.
 - Recording & rotating device can sometimes cause crash, then can't
   reopen app until after reboot (can't init audio record).
     + Sometimes this happens even without rotating the device
-- share file doesn't get saved (sometimes?) after coming back from device sleep
 
 # Todo
-## 3.0
-- android 6.0 storage error - review runtime permissions
-- pre-release
-    + check code todos
-    + compare with current release
-    + update app store images
-
-## other
+- post-release cleanup - code analysis
 - too much processing being done on UI thread?
 - write test for share
 - highlight selected items in load screen

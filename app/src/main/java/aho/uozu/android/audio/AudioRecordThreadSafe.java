@@ -163,9 +163,14 @@ class AudioRecordThreadSafe {
      *       Seen on emulators (which tend to like 8000Hz), not sure on real hardware.
      */
     private int findRecordingSampleRate() throws UnsupportedOperationException {
-        // Workaround: If returning bad rates on emulators:
-         for (int rate : new int[] { 44100, 22050, 16000, 11025, 8000 }) {
-//        for (int rate : new int[] { 22050, 16000, 11025, 8000 }) {
+        // Workaround: If returning bad rates on emulators,
+        // uncomment this for emulator testing
+        //
+        // #####      DON'T COMMIT UNCOMMENTED!!!        #############
+        // for (int rate : new int[] { 8000 }) {
+
+        // commit with these sample rates
+        for (int rate : new int[] { 22050, 16000, 11025, 8000 }) {
             int bufferSize = AudioRecord.getMinBufferSize(rate,
                     AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
             if (bufferSize > 0) {

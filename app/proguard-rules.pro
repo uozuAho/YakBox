@@ -25,6 +25,10 @@
     public static int e(...);
 }
 
+# support library stuff needs to be explicity kept (why?)
+-keep class android.support.v7.widget.ShareActionProvider { *; }
+-keep class android.support.v7.widget.SearchView { *; }
+
 # --------------------------------------------
 # ACRA specifics
 # Restore some Source file names and restore approximate line numbers in
